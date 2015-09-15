@@ -1,0 +1,94 @@
+package com.softwaremill.events
+
+import com.softwaremill.common.Clock
+import com.softwaremill.common.id.IdGenerator
+import com.softwaremill.macwire._
+import org.joda.time.DateTime
+import org.json4s.{DefaultFormats, Formats}
+import org.json4s.native.Serialization
+
+import scala.reflect.ClassTag
+
+trait AggregateForEvent[T, U]
+object AggregateForEvent {
+  def apply[T, U]: AggregateForEvent[T, U] = null
+}
+
+case class Event[T](id: Long, eventType: String, aggregateType: String, rawAggregateId: Long, aggregateIsNew: Boolean,
+    created: DateTime, rawUserId: Long, txId: Long, data: T)(implicit formats: Formats) {
+
+  def aggregateId[U](implicit afe: AggregateForEvent[T, U]): Long @@ U = rawAggregateId.taggedWith[U]
+
+  def userId[User](implicit ut: UserType[User]): Long @@ User = rawUserId.taggedWith[User]
+
+  def toStoredEvent = {
+    StoredEvent(id, eventType, aggregateType, rawAggregateId, aggregateIsNew, created, rawUserId, txId,
+      Serialization.write(data.asInstanceOf[AnyRef]))
+  }
+}
+
+object Event {
+  def apply[U: ClassTag, T <: Product](data: T)(implicit afe: AggregateForEvent[T, U], formats: Formats = DefaultFormats): EventForAggregateBuilder[U, T] =
+    EventForAggregateBuilder(data, formats, afe)
+}
+
+case class EventForAggregateBuilder[U: ClassTag, T <: Product](data: T, formats: Formats, afe: AggregateForEvent[T, U]) {
+  def forNewAggregate: PartialEvent[U, T] =
+    PartialEvent(None, aggregateIsNew = true, data, formats)
+
+  def forAggregate(aggregateId: Long @@ U): PartialEvent[U, T] =
+    PartialEvent(Some(aggregateId), aggregateIsNew = false, data, formats)
+
+  def forAggregate(aggregateId: Option[Long @@ U]): PartialEvent[U, T] = aggregateId match {
+    case None => forNewAggregate
+    case Some(id) => forAggregate(id)
+  }
+
+  def forNewAggregateWithId(aggregateId: Long @@ U): PartialEvent[U, T] =
+    PartialEvent(Some(aggregateId), aggregateIsNew = true, data, formats)
+}
+
+case class PartialEvent[U, T](eventType: String, aggregateType: String, aggregateId: Option[Long @@ U], aggregateIsNew: Boolean,
+    data: T)(val formats: Formats) {
+  def withIds(implicit idGenerator: IdGenerator, clock: Clock) =
+    PartialEventWithId(idGenerator.nextId(), eventType, aggregateType,
+      aggregateId.getOrElse(idGenerator.nextId().taggedWith[U]),
+      aggregateIsNew, clock.now, data)(formats)
+}
+
+object PartialEvent {
+  def apply[U: ClassTag, T <: Product](aggregateId: Option[Long @@ U], aggregateIsNew: Boolean,
+    data: T, formats: Formats): PartialEvent[U, T] =
+    PartialEvent[U, T](data.productPrefix, implicitly[ClassTag[U]].runtimeClass.getSimpleName, aggregateId, aggregateIsNew,
+      data)(formats)
+}
+
+case class PartialEventWithId[U, T](id: Long, eventType: String, aggregateType: String, aggregateId: Long @@ U, aggregateIsNew: Boolean,
+    created: DateTime, data: T)(val formats: Formats) {
+  def toEvent(rawUserId: Long, txId: Long) =
+    Event[T](id, eventType, aggregateType, aggregateId, aggregateIsNew, created, rawUserId, txId, data)(formats)
+}
+
+case class StoredEvent(id: Long, eventType: String, aggregateType: String, aggregateId: Long, aggregateIsNew: Boolean,
+  created: DateTime, userId: Long, txId: Long, eventJson: String)
+
+case class HandleContext(rawUserId: Long, txId: Option[Long]) {
+  def withNewTxIdIfUnset(implicit idGenerator: IdGenerator): (HandleContext, Long) = txId match {
+    case None =>
+      val newTxId = idGenerator.nextId()
+      (HandleContext(rawUserId, Some(newTxId)), newTxId)
+    case Some(t) =>
+      (this, t)
+  }
+}
+
+object HandleContext {
+  val System = HandleContext(-1L, None)
+  def apply[User](userId: Long @@ User)(implicit ut: UserType[User]): HandleContext = HandleContext(userId, None)
+}
+
+trait HandleContextTransform[U] {
+  def apply(e: PartialEventWithId[U, _], hc: HandleContext): HandleContext
+}
+
+trait UserType[-User]
