@@ -15,7 +15,7 @@ import scala.util.{Failure, Success}
 
 class Main() extends StrictLogging {
   def start(): (Future[ServerBinding], Beans) = {
-    Locale.setDefault(Locale.US) // set default locale to prevent from sending cookie expiration date in polish format
+    Locale.setDefault(Locale.US)
 
     implicit val _system = ActorSystem("slick-eventsourcing")
     implicit val _materializer = ActorMaterializer()

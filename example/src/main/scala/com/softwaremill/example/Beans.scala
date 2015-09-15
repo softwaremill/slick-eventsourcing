@@ -5,7 +5,6 @@ import com.softwaremill.common.{RealTimeClock, Clock}
 import com.softwaremill.database.{DatabaseConfig, SqlDatabase}
 import com.softwaremill.events.{EventMachine, EventStore, Registry}
 import com.softwaremill.example.apikey.ApikeyModule
-import com.softwaremill.example.common.RealTimeClock
 import com.softwaremill.common.id.IdGenerator
 import com.softwaremill.example.email.EmailService
 import com.softwaremill.example.user.UserModule

@@ -25,11 +25,7 @@ trait Routes extends ApikeyRoutes with UsersRoutes {
           apikeyRoutes ~
             usersRoutes
         } ~
-          getFromResourceDirectory("webapp") ~
-          // any other path -> returning index, will be handled by the frontend
-          pathPrefixTest(!("api" | "oauth")) {
-            getFromResource("webapp/index.html")
-          }
+          getFromResourceDirectory("webapp")
       }
     }
 }

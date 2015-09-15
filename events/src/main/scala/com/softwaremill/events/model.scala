@@ -9,6 +9,15 @@ import org.json4s.native.Serialization
 
 import scala.reflect.ClassTag
 
+/**
+ * For each event, provide an implicit value of type `AggregateForEvent` which specifies with which aggregate is
+ * this event associated. This is used e.g. for id type-tagging.
+ *
+ * If the implicit is defined in the companion object for the event, it will be found automatically by the compiler.
+ *
+ * @tparam T Event type
+ * @tparam U Aggregate type
+ */
 trait AggregateForEvent[T, U]
 object AggregateForEvent {
   def apply[T, U]: AggregateForEvent[T, U] = null
@@ -28,6 +37,9 @@ case class Event[T](id: Long, eventType: String, aggregateType: String, rawAggre
 }
 
 object Event {
+  /**
+   * Main entry point for creating new events.
+   */
   def apply[U: ClassTag, T <: Product](data: T)(implicit afe: AggregateForEvent[T, U], formats: Formats = DefaultFormats): EventForAggregateBuilder[U, T] =
     EventForAggregateBuilder(data, formats, afe)
 }
@@ -72,6 +84,9 @@ case class PartialEventWithId[U, T](id: Long, eventType: String, aggregateType: 
 case class StoredEvent(id: Long, eventType: String, aggregateType: String, aggregateId: Long, aggregateIsNew: Boolean,
   created: DateTime, userId: Long, txId: Long, eventJson: String)
 
+/**
+ * Context in which events are created and handled: for example, the currently logged in user id.
+ */
 case class HandleContext(rawUserId: Long, txId: Option[Long]) {
   def withNewTxIdIfUnset(implicit idGenerator: IdGenerator): (HandleContext, Long) = txId match {
     case None =>
@@ -91,4 +106,8 @@ trait HandleContextTransform[U] {
   def apply(e: PartialEventWithId[U, _], hc: HandleContext): HandleContext
 }
 
+/**
+ * A way to parametrise a subproject with a type. There should be exactly one implicit value of this type, parametrised
+ * by the type of the "user" entity. This is needed to properly tag the user id in events.
+ */
 trait UserType[-User]
