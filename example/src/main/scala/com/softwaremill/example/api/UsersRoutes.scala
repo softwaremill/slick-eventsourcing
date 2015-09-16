@@ -69,4 +69,4 @@ trait UsersRoutes extends RoutesSupport with StrictLogging {
 }
 
 case class RegisterInput(login: String, email: String, password: String)
-case class LoginInput(login: String, password: String, rememberMe: Option[Boolean])
+case class LoginInput(login: String, password: String)

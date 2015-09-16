@@ -20,12 +20,12 @@ trait Routes extends ApikeyRoutes with UsersRoutes {
 
   val routes =
     handleExceptions(exceptionHandler) {
-      encodeResponse {
-        pathPrefix("api") {
-          apikeyRoutes ~
-            usersRoutes
-        } ~
-          getFromResourceDirectory("webapp")
-      }
+      pathPrefix("api") {
+        apikeyRoutes ~
+          usersRoutes
+      } ~
+        path("") {
+          getFromResource("webapp/index.html")
+        } ~ getFromResourceDirectory("webapp")
     }
 }
