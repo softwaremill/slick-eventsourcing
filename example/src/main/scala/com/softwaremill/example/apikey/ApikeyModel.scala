@@ -1,7 +1,7 @@
 package com.softwaremill.example.apikey
 
 import com.softwaremill.database.{DBWrite, DBRead, SqlDatabase}
-import com.softwaremill.macwire._
+import com.softwaremill.macwire.tagging._
 import com.softwaremill.example.user.User
 import org.joda.time.DateTime
 

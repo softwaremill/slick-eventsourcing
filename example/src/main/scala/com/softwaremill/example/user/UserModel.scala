@@ -1,7 +1,7 @@
 package com.softwaremill.example.user
 
 import com.softwaremill.database.{DBWrite, DBRead, SqlDatabase}
-import com.softwaremill.macwire._
+import com.softwaremill.macwire.tagging._
 import org.joda.time.DateTime
 
 import scala.concurrent.ExecutionContext

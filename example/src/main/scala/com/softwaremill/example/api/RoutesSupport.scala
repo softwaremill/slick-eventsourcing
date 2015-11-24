@@ -10,7 +10,7 @@ import com.softwaremill.common.Clock
 import com.softwaremill.database.SqlDatabase
 import com.softwaremill.events.{CommandResult, EventMachine, HandleContext}
 import com.softwaremill.example.user.{User, UserModel}
-import com.softwaremill.macwire._
+import com.softwaremill.macwire.tagging._
 import com.softwaremill.session.SessionDirectives._
 import com.softwaremill.session.SessionManager
 import org.joda.time.DateTime
@@ -89,7 +89,7 @@ trait SessionSupport {
     }
   }
 
-  def userIdFromSession: Directive1[Long @@ User] = requiredSession().map(_.userId)
+  def userIdFromSession: Directive1[Long @@ User] = requiredSession(oneOff, usingCookies).map(_.userId)
 }
 
 trait DatabaseSupport {

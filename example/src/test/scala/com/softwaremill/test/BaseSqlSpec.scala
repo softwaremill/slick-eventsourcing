@@ -1,6 +1,7 @@
 package com.softwaremill.test
 
 import com.softwaremill.database.SqlDatabase
+import com.softwaremill.example.database.SchemaUpdate
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 
@@ -27,7 +28,7 @@ trait BaseSqlSpec extends BaseSpec with BeforeAndAfterAll with BeforeAndAfterEac
   }
 
   private def createAll() {
-    database.updateSchema()
+    SchemaUpdate.update(connectionString)
   }
 
   override protected def afterEach() {

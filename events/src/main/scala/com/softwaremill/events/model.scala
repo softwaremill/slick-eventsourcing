@@ -2,7 +2,7 @@ package com.softwaremill.events
 
 import com.softwaremill.common.Clock
 import com.softwaremill.common.id.IdGenerator
-import com.softwaremill.macwire._
+import com.softwaremill.macwire.tagging._
 import org.joda.time.DateTime
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.Serialization

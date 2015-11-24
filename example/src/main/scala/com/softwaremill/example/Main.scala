@@ -7,6 +7,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
 import akka.stream.ActorMaterializer
 import com.softwaremill.example.api.{Session, Routes}
+import com.softwaremill.example.database.SchemaUpdate
 import com.softwaremill.session.{SessionManager, SessionConfig}
 import com.typesafe.scalalogging.StrictLogging
 
@@ -22,7 +23,7 @@ class Main() extends StrictLogging {
     import _system.dispatcher
 
     val modules = new Beans with Routes {
-      lazy val sessionConfig = SessionConfig.fromConfig(config.rootConfig).withClientSessionEncryptData(true)
+      lazy val sessionConfig = SessionConfig.fromConfig(config.rootConfig).copy(sessionEncryptData = true)
 
       implicit lazy val ec = _system.dispatcher
       implicit lazy val sessionManager: SessionManager[Session] = new SessionManager[Session](sessionConfig)
@@ -30,7 +31,7 @@ class Main() extends StrictLogging {
       lazy val system = _system
     }
 
-    modules.sqlDatabase.updateSchema()
+    SchemaUpdate.update(modules.config.dbH2Url)
 
     val startFuture = Http().bindAndHandle(modules.routes, modules.config.serverHost, modules.config.serverPort)
 
@@ -52,13 +53,13 @@ object Main extends App with StrictLogging {
       logger.info(s"Server started on $host:$port")
       sys.addShutdownHook {
         b.unbind()
-        system.shutdown()
+        system.terminate()
         logger.info("Server stopped")
       }
     case Failure(e) =>
       logger.error(s"Cannot start server on $host:$port", e)
       sys.addShutdownHook {
-        system.shutdown()
+        system.terminate()
         logger.info("Server stopped")
       }
   }

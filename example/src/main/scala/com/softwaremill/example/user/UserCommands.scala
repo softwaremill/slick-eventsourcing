@@ -2,7 +2,7 @@ package com.softwaremill.example.user
 
 import com.softwaremill.example.common.Utils
 import com.softwaremill.events.{CommandResult, Event}
-import com.softwaremill.macwire._
+import com.softwaremill.macwire.tagging._
 import com.typesafe.scalalogging.StrictLogging
 import com.softwaremill.common.id.IdGenerator
 

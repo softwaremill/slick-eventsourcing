@@ -20,7 +20,7 @@ trait UsersRoutes extends RoutesSupport with StrictLogging {
     path("logout") {
       get {
         userIdFromSession { _ =>
-          invalidateSession() {
+          invalidateSession(oneOff, usingCookies) {
             completeOk
           }
         }
@@ -33,7 +33,7 @@ trait UsersRoutes extends RoutesSupport with StrictLogging {
 
             cmdResult(userCommands.register(in.login, in.password, in.email)) { result =>
               onRegisterSuccessful(result) { userId =>
-                setSession(Session(userId)) {
+                setSession(oneOff, usingCookies, Session(userId)) {
                   complete("success")
                 }
               }
@@ -49,7 +49,7 @@ trait UsersRoutes extends RoutesSupport with StrictLogging {
             case Left(_) => reject(AuthorizationFailedRejection)
             case Right(user) =>
               val session = Session(user.id)
-              setSession(session) {
+              setSession(oneOff, usingCookies, session) {
                 complete(UserJson(user))
               }
           }

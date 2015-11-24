@@ -1,6 +1,6 @@
 package com.softwaremill
 
-import com.softwaremill.macwire._
+import com.softwaremill.macwire.tagging._
 import com.softwaremill.common.id.IdGenerator
 import com.softwaremill.database.{DBReadWrite, DBRead}
 import slick.dbio.Effect.Read

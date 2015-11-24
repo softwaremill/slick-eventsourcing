@@ -5,7 +5,7 @@ import javax.crypto.spec.PBEKeySpec
 import com.softwaremill.events.UserType
 import com.softwaremill.example.common.Utils
 import org.joda.time.DateTime
-import com.softwaremill.macwire._
+import com.softwaremill.macwire.tagging._
 
 case class User(
   id: Long @@ User,
