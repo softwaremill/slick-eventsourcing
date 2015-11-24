@@ -8,6 +8,9 @@ import com.softwaremill.database.SqlDatabase
 
 import scala.concurrent.ExecutionContext
 
+/**
+  * Default wiring of the classes involved in handling the events.
+  */
 trait EventsModule {
   lazy val eventStore = new EventStore(sqlDatabase)
   lazy val asyncEventQueue = new LinkedBlockingQueue[Event[_]]()

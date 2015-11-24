@@ -15,10 +15,24 @@ class EventMachine(database: SqlDatabase, registry: Registry, eventStore: EventS
     ec: ExecutionContext, idGenerator: IdGenerator, clock: Clock
 ) extends StrictLogging {
 
+  /**
+    * Runs the database actions described by the `cr: CommandResult` to compute the return value: either success (`: S`)
+    * or failure (`: F`)) and a list of events. For each event, first runs the model update functions, then the event
+    * listeners. In case new events are created, handles them recursively.
+    *
+    * The actions to compute the command result, the model updates and the event listeners are **executed in a single
+    * DB transaction**.
+    *
+    * Finally, schedules asynchronous event listeners for the events created to run in separate transactions (if any).
+    */
   def run[F, S](cr: CommandResult[F, S])(implicit hc: HandleContext): Future[Either[F, S]] = {
     database.db.run(handle(cr))
   }
 
+  /**
+    * Same as [[run]], but returns a `DBAction` describing the actions that should be done to handle the given
+    * command result and created events transactionally.
+    */
   def handle[F, S](cr: CommandResult[F, S])(implicit hc: HandleContext): DBIOAction[Either[F, S], NoStream, Read with Write with Transactional] = {
     val txId = idGenerator.nextId()
     wrapInTxAndSchedule(cr

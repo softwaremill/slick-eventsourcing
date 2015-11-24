@@ -41,38 +41,53 @@ case class Event[T](id: Long, eventType: String, aggregateType: String, rawAggre
 
 object Event {
   /**
-    * Main entry point for creating new events.
+    * Main entry point for creating new events. Creates a builder for a new event with the given event data.
+    *
+    * @param formats If the event contains field which require custom serializers, provide the json formats needed
+    *                to serialize it.
     */
   def apply[U: ClassTag, T <: Product](data: T)(implicit afe: AggregateForEvent[T, U], formats: Formats = DefaultFormats): EventForAggregateBuilder[U, T] =
     EventForAggregateBuilder(data, formats, afe)
 }
 
 case class EventForAggregateBuilder[U: ClassTag, T <: Product](data: T, formats: Formats, afe: AggregateForEvent[T, U]) {
+  /**
+    * This event creates a new aggregate. An id will be generated when the events are processed.
+    */
   def forNewAggregate: PartialEvent[U, T] =
     PartialEvent(None, aggregateIsNew = true, data, formats)
 
+  /**
+    * This event modifies an existing aggregate.
+    */
   def forAggregate(aggregateId: Long @@ U): PartialEvent[U, T] =
     PartialEvent(Some(aggregateId), aggregateIsNew = false, data, formats)
 
+  /**
+    * This events creates a new, or modifies an existing aggregate.
+    */
   def forAggregate(aggregateId: Option[Long @@ U]): PartialEvent[U, T] = aggregateId match {
     case None => forNewAggregate
     case Some(id) => forAggregate(id)
   }
 
+  /**
+    * This event creates a new aggregate. The id (`aggregateId`) is specified upfront.
+    */
   def forNewAggregateWithId(aggregateId: Long @@ U): PartialEvent[U, T] =
     PartialEvent(Some(aggregateId), aggregateIsNew = true, data, formats)
 }
 
 case class PartialEvent[U, T](eventType: String, aggregateType: String, aggregateId: Option[Long @@ U], aggregateIsNew: Boolean,
     data: T)(val formats: Formats) {
-  def withIds(implicit idGenerator: IdGenerator, clock: Clock) =
+  private[events] def withIds(implicit idGenerator: IdGenerator, clock: Clock) =
     PartialEventWithId(idGenerator.nextId(), eventType, aggregateType,
       aggregateId.getOrElse(idGenerator.nextId().taggedWith[U]),
       aggregateIsNew, clock.instant().atOffset(ZoneOffset.UTC), data)(formats)
 }
 
 object PartialEvent {
-  def apply[U: ClassTag, T <: Product](aggregateId: Option[Long @@ U], aggregateIsNew: Boolean,
+  private[events] def apply[U: ClassTag, T <: Product](aggregateId: Option[Long @@ U], aggregateIsNew: Boolean,
     data: T, formats: Formats): PartialEvent[U, T] =
     PartialEvent[U, T](data.productPrefix, implicitly[ClassTag[U]].runtimeClass.getSimpleName, aggregateId, aggregateIsNew,
       data)(formats)
@@ -80,7 +95,7 @@ object PartialEvent {
 
 case class PartialEventWithId[U, T](id: Long, eventType: String, aggregateType: String, aggregateId: Long @@ U, aggregateIsNew: Boolean,
     created: OffsetDateTime, data: T)(val formats: Formats) {
-  def toEvent(rawUserId: Long, txId: Long) =
+  private[events] def toEvent(rawUserId: Long, txId: Long) =
     Event[T](id, eventType, aggregateType, aggregateId, aggregateIsNew, created, rawUserId, txId, data)(formats)
 }
 
