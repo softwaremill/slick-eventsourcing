@@ -33,7 +33,7 @@ name := "slick-eventsourcing"
 
 // factor out common settings into a sequence
 lazy val commonSettings = scalariformSettings ++ Seq(
-  organization := "com.softwaremill",
+  organization := "com.softwaremill.events",
   version := "0.0.1-SNAPSHOT",
   scalaVersion := "2.11.7",
 
@@ -50,9 +50,9 @@ lazy val commonSettings = scalariformSettings ++ Seq(
 
 lazy val slickEventsourcing = (project in file("."))
   .settings(commonSettings)
-  .aggregate(events, example)
+  .aggregate(core, example)
 
-lazy val events = (project in file("events"))
+lazy val core = (project in file("core"))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(slf4jApi, scalaLogging, scalatest, typesafeConfig,
@@ -69,4 +69,4 @@ lazy val example = (project in file("example"))
         macwireMacros, logbackClassic),
     mainClass in Compile := Some("com.softwaremill.example.Main"),
     assemblyJarName in assembly := "app.jar"
-  ) dependsOn (events)
+  ) dependsOn (core)
