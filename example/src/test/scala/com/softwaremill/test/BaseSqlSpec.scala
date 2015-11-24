@@ -9,7 +9,7 @@ trait BaseSqlSpec extends BaseSpec with BeforeAndAfterAll with BeforeAndAfterEac
 
   private val connectionString = "jdbc:h2:mem:slickeventsourcing_test" + this.getClass.getSimpleName + ";DB_CLOSE_DELAY=-1"
 
-  lazy val database = SqlDatabase.createEmbedded(connectionString)
+  lazy val database = SqlDatabase.createH2(connectionString)
 
   override protected def beforeAll() {
     super.beforeAll()

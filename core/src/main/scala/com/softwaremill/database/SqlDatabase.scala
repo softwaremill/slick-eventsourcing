@@ -30,7 +30,7 @@ case class SqlDatabase(
 }
 
 object SqlDatabase extends StrictLogging {
-  def createEmbedded(connectionString: String): SqlDatabase = {
+  def createH2(connectionString: String): SqlDatabase = {
     val db = Database.forURL(connectionString)
     SqlDatabase(db, slick.driver.H2Driver)
   }

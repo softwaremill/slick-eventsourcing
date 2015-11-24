@@ -17,16 +17,16 @@ class DefaultIdGenerator(workerId: Long = 1, datacenterId: Long = 1) extends IdG
 }
 
 /**
-  * An object that generates IDs.
-  * This is broken into a separate class in case
-  * we ever want to support multiple worker threads
-  * per process
-  *
-  * Copied from: https://github.com/twitter/snowflake/tree/master/src/main/scala/com/twitter/service/snowflake
-  * Modified to fit our logging, removed stats.
-  *
-  * Single threaded!
-  */
+ * An object that generates IDs.
+ * This is broken into a separate class in case
+ * we ever want to support multiple worker threads
+ * per process
+ *
+ * Copied from: https://github.com/twitter/snowflake/tree/master/src/main/scala/com/twitter/service/snowflake
+ * Modified to fit our logging, removed stats.
+ *
+ * Single threaded!
+ */
 private[id] class IdWorker(workerId: Long, datacenterId: Long, var sequence: Long = 0L) extends StrictLogging {
   val twepoch = 1288834974657L
 

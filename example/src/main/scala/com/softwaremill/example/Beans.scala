@@ -3,7 +3,7 @@ package com.softwaremill.example
 import java.time.Clock
 
 import akka.actor.ActorSystem
-import com.softwaremill.common.id.IdGenerator
+import com.softwaremill.common.id.DefaultIdGenerator
 import com.softwaremill.database.SqlDatabase
 import com.softwaremill.events.{EventsModule, Registry}
 import com.softwaremill.example.apikey.ApikeyModule
@@ -22,10 +22,10 @@ trait Beans extends StrictLogging
     override def rootConfig = ConfigFactory.load()
   }
 
-  override lazy val sqlDatabase = SqlDatabase.createEmbedded(config.dbH2Url)
+  override lazy val sqlDatabase = SqlDatabase.createH2(config.dbH2Url)
 
   implicit val clock: Clock = Clock.systemUTC()
-  implicit val idGenerator = new IdGenerator(datacenterId = 1)
+  implicit val idGenerator = new DefaultIdGenerator(datacenterId = 1)
 
   lazy val emailService = new EmailService()
 
