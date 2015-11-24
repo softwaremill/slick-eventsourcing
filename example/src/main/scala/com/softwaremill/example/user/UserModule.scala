@@ -1,16 +1,17 @@
 package com.softwaremill.example.user
 
+import com.softwaremill.common.id.IdGenerator
 import com.softwaremill.database.SqlDatabase
 import com.softwaremill.events.Registry
-import com.softwaremill.example.DefaultImplicits
 import com.softwaremill.example.email.EmailService
-import com.softwaremill.macwire._
 import com.softwaremill.example.apikey.ApikeyCommands
 
-trait UserModule extends DefaultImplicits {
-  lazy val userCommands = wire[UserCommands]
-  lazy val userListeners: UserListeners = wire[UserListeners]
-  lazy val userModel = wire[UserModel]
+import scala.concurrent.ExecutionContext
+
+trait UserModule {
+  lazy val userCommands = new UserCommands(userModel, idGenerator)
+  lazy val userListeners = new UserListeners(userModel)
+  lazy val userModel = new UserModel(sqlDatabase)
 
   def addUserListeners = (_: Registry)
     .registerModelUpdate(userListeners.registeredUpdate)
@@ -21,4 +22,7 @@ trait UserModule extends DefaultImplicits {
   def apikeyCommands: ApikeyCommands
   def emailService: EmailService
   def sqlDatabase: SqlDatabase
+  def idGenerator: IdGenerator
+
+  implicit def ec: ExecutionContext
 }

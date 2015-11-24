@@ -4,7 +4,7 @@ import com.softwaremill.test.{TestSqlData, BaseSqlSpec}
 
 class UserCommandsSpec extends BaseSqlSpec with TestSqlData {
 
-  val userCommands = new UserCommands(userModel)
+  val userCommands = new UserCommands(userModel, idGenerator)
 
   override protected def beforeEach() {
     super.beforeEach()

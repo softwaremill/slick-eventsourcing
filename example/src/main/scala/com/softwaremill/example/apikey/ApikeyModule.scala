@@ -2,17 +2,19 @@ package com.softwaremill.example.apikey
 
 import com.softwaremill.database.SqlDatabase
 import com.softwaremill.events.Registry
-import com.softwaremill.example.DefaultImplicits
-import com.softwaremill.macwire._
 
-trait ApikeyModule extends DefaultImplicits {
-  lazy val apikeyCommands = wire[ApikeyCommands]
-  lazy val apikeyListeners: ApikeyListeners = wire[ApikeyListeners]
-  lazy val apikeyModel = wire[ApikeyModel]
+import scala.concurrent.ExecutionContext
+
+trait ApikeyModule {
+  lazy val apikeyCommands = new ApikeyCommands(apikeyModel)
+  lazy val apikeyListeners = new ApikeyListeners(apikeyModel)
+  lazy val apikeyModel = new ApikeyModel(sqlDatabase)
 
   def addApikeyListeners = (_: Registry)
     .registerModelUpdate(apikeyListeners.createdUpdated)
     .registerModelUpdate(apikeyListeners.deletedUpdated)
 
   def sqlDatabase: SqlDatabase
+
+  implicit def ec: ExecutionContext
 }

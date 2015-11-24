@@ -8,7 +8,7 @@ import com.softwaremill.common.id.IdGenerator
 
 import scala.concurrent.ExecutionContext
 
-class UserCommands(userModel: UserModel)(implicit ec: ExecutionContext, idGenerator: IdGenerator) extends StrictLogging {
+class UserCommands(userModel: UserModel, idGenerator: IdGenerator)(implicit ec: ExecutionContext) extends StrictLogging {
   import UserCommands._
 
   def register(login: String, password: String, email: String): CommandResult[RegisterFailure, Long @@ User] = {
@@ -22,7 +22,7 @@ class UserCommands(userModel: UserModel)(implicit ec: ExecutionContext, idGenera
           val salt = Utils.randomString(128)
 
           val eventData = UserRegistered(escapedLogin, email, User.encryptPassword(password, salt), salt)
-          CommandResult.newAggregateId(Event(eventData).forNewAggregate)
+          CommandResult.newAggregateId(Event(eventData).forNewAggregate, idGenerator)
       }
     }
     else {

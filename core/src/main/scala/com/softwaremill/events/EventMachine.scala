@@ -10,29 +10,33 @@ import slick.dbio.{DBIO, DBIOAction, NoStream}
 
 import scala.concurrent.{Future, ExecutionContext}
 
-class EventMachine(database: SqlDatabase, registry: Registry, eventStore: EventStore, asyncEventScheduler: AsyncEventScheduler)(
-    implicit
-    ec: ExecutionContext, idGenerator: IdGenerator, clock: Clock
-) extends StrictLogging {
+class EventMachine(
+    database: SqlDatabase,
+    registry: Registry,
+    eventStore: EventStore,
+    asyncEventScheduler: AsyncEventScheduler,
+    idGenerator: IdGenerator,
+    clock: Clock
+)(implicit ec: ExecutionContext) extends StrictLogging {
 
   /**
-    * Runs the database actions described by the `cr: CommandResult` to compute the return value: either success (`: S`)
-    * or failure (`: F`)) and a list of events. For each event, first runs the model update functions, then the event
-    * listeners. In case new events are created, handles them recursively.
-    *
-    * The actions to compute the command result, the model updates and the event listeners are **executed in a single
-    * DB transaction**.
-    *
-    * Finally, schedules asynchronous event listeners for the events created to run in separate transactions (if any).
-    */
+   * Runs the database actions described by the `cr: CommandResult` to compute the return value: either success (`: S`)
+   * or failure (`: F`)) and a list of events. For each event, first runs the model update functions, then the event
+   * listeners. In case new events are created, handles them recursively.
+   *
+   * The actions to compute the command result, the model updates and the event listeners are **executed in a single
+   * DB transaction**.
+   *
+   * Finally, schedules asynchronous event listeners for the events created to run in separate transactions (if any).
+   */
   def run[F, S](cr: CommandResult[F, S])(implicit hc: HandleContext): Future[Either[F, S]] = {
     database.db.run(handle(cr))
   }
 
   /**
-    * Same as [[run]], but returns a `DBAction` describing the actions that should be done to handle the given
-    * command result and created events transactionally.
-    */
+   * Same as [[run]], but returns a `DBAction` describing the actions that should be done to handle the given
+   * command result and created events transactionally.
+   */
   def handle[F, S](cr: CommandResult[F, S])(implicit hc: HandleContext): DBIOAction[Either[F, S], NoStream, Read with Write with Transactional] = {
     val txId = idGenerator.nextId()
     wrapInTxAndSchedule(cr
@@ -74,7 +78,7 @@ class EventMachine(database: SqlDatabase, registry: Registry, eventStore: EventS
   private def handleEvents(pes: Seq[PartialEvent[_, _]], originalCtx: HandleContext, txId: Long): DBHandledEvents = {
     val allOps = pes.foldLeft((originalCtx, List.empty[DBHandledEvents])) {
       case ((currentCtx, ops), pe) =>
-        val peIds = pe.withIds
+        val peIds = pe.withIds(idGenerator, clock)
 
         val ctx = pe.data match {
           case t: HandleContextTransform[Any @unchecked] => t(peIds.asInstanceOf[PartialEventWithId[Any, _]], currentCtx)

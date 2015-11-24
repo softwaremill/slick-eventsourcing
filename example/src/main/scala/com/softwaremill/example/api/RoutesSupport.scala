@@ -22,8 +22,6 @@ import slick.dbio.{DBIOAction, Effect, NoStream}
 import scala.concurrent.ExecutionContext
 
 trait RoutesSupport extends JsonSupport with SessionSupport with DatabaseSupport {
-  implicit def clock: Clock
-
   def completeOk = complete("ok")
   def completeEmpty = complete("")
 }

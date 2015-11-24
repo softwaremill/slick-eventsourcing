@@ -80,7 +80,7 @@ case class EventForAggregateBuilder[U: ClassTag, T <: Product](data: T, formats:
 
 case class PartialEvent[U, T](eventType: String, aggregateType: String, aggregateId: Option[Long @@ U], aggregateIsNew: Boolean,
     data: T)(val formats: Formats) {
-  private[events] def withIds(implicit idGenerator: IdGenerator, clock: Clock) =
+  private[events] def withIds(idGenerator: IdGenerator, clock: Clock) =
     PartialEventWithId(idGenerator.nextId(), eventType, aggregateType,
       aggregateId.getOrElse(idGenerator.nextId().taggedWith[U]),
       aggregateIsNew, clock.instant().atOffset(ZoneOffset.UTC), data)(formats)

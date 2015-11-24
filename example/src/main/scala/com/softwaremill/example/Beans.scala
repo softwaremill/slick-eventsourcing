@@ -24,8 +24,8 @@ trait Beans extends StrictLogging
 
   override lazy val sqlDatabase = SqlDatabase.createH2(config.dbH2Url)
 
-  implicit val clock: Clock = Clock.systemUTC()
-  implicit val idGenerator = new DefaultIdGenerator(datacenterId = 1)
+  lazy val clock: Clock = Clock.systemUTC()
+  lazy val idGenerator = new DefaultIdGenerator(datacenterId = 1)
 
   lazy val emailService = new EmailService()
 

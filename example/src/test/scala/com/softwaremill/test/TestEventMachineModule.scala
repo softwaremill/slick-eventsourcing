@@ -1,13 +1,12 @@
 package com.softwaremill.test
 
 import com.softwaremill.events._
-import com.softwaremill.example.DefaultImplicits
 import com.typesafe.scalalogging.StrictLogging
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Span}
 import slick.dbio.DBIO
 
-trait TestEventMachineModule extends DefaultImplicits with TestImplicits with ScalaFutures with StrictLogging with EventsModule {
+trait TestEventMachineModule extends TestImplicits with ScalaFutures with StrictLogging with EventsModule {
   implicit val patience = PatienceConfig(timeout = Span(1000, Millis))
 
   def runCommand[F, S](cr: CommandResult[F, S])(implicit hc: HandleContext) = {

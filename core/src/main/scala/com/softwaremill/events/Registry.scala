@@ -3,8 +3,8 @@ package com.softwaremill.events
 import scala.reflect.ClassTag
 
 /**
-  * Maps event types to event listeners (synchronous and asynchornous) as well as model update functions.
-  */
+ * Maps event types to event listeners (synchronous and asynchornous) as well as model update functions.
+ */
 case class Registry(
     eventListeners: Map[Class[_], List[EventListener[_]]],
     asyncEventListeners: Map[Class[_], List[EventListener[_]]],
