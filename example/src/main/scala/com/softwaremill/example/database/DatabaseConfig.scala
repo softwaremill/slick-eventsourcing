@@ -1,4 +1,4 @@
-package com.softwaremill.database
+package com.softwaremill.example.database
 
 import com.typesafe.config.Config
 

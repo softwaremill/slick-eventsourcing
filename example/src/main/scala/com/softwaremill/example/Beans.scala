@@ -3,10 +3,11 @@ package com.softwaremill.example
 import java.time.Clock
 
 import akka.actor.ActorSystem
-import com.softwaremill.database.{DatabaseConfig, SqlDatabase}
-import com.softwaremill.events.{EventsModule, EventMachine, EventStore, Registry}
-import com.softwaremill.example.apikey.ApikeyModule
 import com.softwaremill.common.id.IdGenerator
+import com.softwaremill.database.SqlDatabase
+import com.softwaremill.events.{EventsModule, Registry}
+import com.softwaremill.example.apikey.ApikeyModule
+import com.softwaremill.example.database.DatabaseConfig
 import com.softwaremill.example.email.EmailService
 import com.softwaremill.example.user.UserModule
 import com.typesafe.config.ConfigFactory
