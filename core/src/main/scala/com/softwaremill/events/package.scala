@@ -8,6 +8,8 @@ import slick.dbio.{DBIO, DBIOAction, NoStream}
 import scala.concurrent.ExecutionContext
 
 package object events {
+  type EventListener[T] = Event[T] => DBIOAction[List[PartialEvent[_, _]], NoStream, Read]
+  type ModelUpdate[T] = Event[T] => DBIOAction[Unit, NoStream, Read with Write]
   type CommandResult[F, S] = DBIOAction[(Either[F, S], List[PartialEvent[_, _]]), NoStream, Read]
 
   object CommandResult {
@@ -33,7 +35,4 @@ package object events {
       case (r, events) => (r, events ++ e.toList)
     }
   }
-
-  type EventListener[T] = Event[T] => DBIOAction[List[PartialEvent[_, _]], NoStream, Read]
-  type ModelUpdate[T] = Event[T] => DBIOAction[Unit, NoStream, Read with Write]
 }

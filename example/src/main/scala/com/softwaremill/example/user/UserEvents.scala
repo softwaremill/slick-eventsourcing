@@ -1,6 +1,6 @@
 package com.softwaremill.example.user
 
-import com.softwaremill.events.{HandleContextTransform, HandleContext, PartialEventWithId, AggregateForEvent}
+import com.softwaremill.events._
 
 case class UserRegistered(
     login: String,
@@ -18,6 +18,5 @@ object UserRegistered {
 case class UserLoggedIn() extends HandleContextTransform[User] {
   override def apply(e: PartialEventWithId[User, _], hc: HandleContext) = hc.withUserId(e.aggregateId)
 }
-object UserLoggedIn {
-  implicit val afe = AggregateForEvent[UserLoggedIn, User]
-}
+
+object UserLoggedIn extends AggregateForEvent[UserLoggedIn, User]

@@ -10,15 +10,18 @@ import org.json4s.native.Serialization
 import scala.reflect.ClassTag
 
 /**
- * For each event, provide an implicit value of type `AggregateForEvent` which specifies with which aggregate is
- * this event associated. This is used e.g. for id type-tagging.
- *
- * If the implicit is defined in the companion object for the event, it will be found automatically by the compiler.
- *
- * @tparam T Event type
- * @tparam U Aggregate type
- */
-trait AggregateForEvent[T, U]
+  * For each event, provide an implicit value of type `AggregateForEvent` which specifies with which aggregate is
+  * this event associated. This is used e.g. for id type-tagging.
+  *
+  * If the companion object contains the implicit or extends `AggregateForEvent` with the correct type parameters,
+  * the implicit will be found automatically by the compiler, without the need for additional imports.
+  *
+  * @tparam T Event type
+  * @tparam U Aggregate type
+  */
+trait AggregateForEvent[T, U] {
+  implicit val afe: AggregateForEvent[T, U] = null
+}
 object AggregateForEvent {
   def apply[T, U]: AggregateForEvent[T, U] = null
 }
@@ -38,8 +41,8 @@ case class Event[T](id: Long, eventType: String, aggregateType: String, rawAggre
 
 object Event {
   /**
-   * Main entry point for creating new events.
-   */
+    * Main entry point for creating new events.
+    */
   def apply[U: ClassTag, T <: Product](data: T)(implicit afe: AggregateForEvent[T, U], formats: Formats = DefaultFormats): EventForAggregateBuilder[U, T] =
     EventForAggregateBuilder(data, formats, afe)
 }
@@ -85,8 +88,8 @@ case class StoredEvent(id: Long, eventType: String, aggregateType: String, aggre
   created: OffsetDateTime, userId: Long, txId: Long, eventJson: String)
 
 /**
- * Context in which events are created and handled: for example, the currently logged in user id.
- */
+  * Context in which events are created and handled: for example, the currently logged in user id.
+  */
 class HandleContext private[events] (private[events] val rawUserId: Long) {
   def withUserId[User](userId: Long @@ User)(implicit ut: UserType[User]) = new HandleContext(userId)
 }
@@ -96,12 +99,15 @@ object HandleContext {
   val System = new HandleContext(-1L)
 }
 
+/**
+  * Should be implemented by events which change the "current" user, e.g. a user-registered or user-logged-in events.
+  */
 trait HandleContextTransform[U] {
   def apply(e: PartialEventWithId[U, _], hc: HandleContext): HandleContext
 }
 
 /**
- * A way to parametrise a subproject with a type. There should be exactly one implicit value of this type, parametrised
- * by the type of the "user" entity. This is needed to properly tag the user id in events.
- */
+  * A way to parametrise a whole project with a type. There should be exactly one implicit value of this type,
+  * parametrised by the type of the "user" aggregate (entity). This is needed to properly tag the user id in events.
+  */
 trait UserType[-User]
