@@ -17,7 +17,7 @@ trait ApikeyRoutes extends RoutesSupport {
       implicit val hc = HandleContext(userId)
       path("single") {
         get {
-          dbResult(apikeyModel.findByUserId(userId).map(_.sortBy(-_.created.getMillis).headOption)) {
+          dbResult(apikeyModel.findByUserId(userId).map(_.sortBy(-_.created.toInstant.toEpochMilli).headOption)) {
             case Some(key) => complete(key)
             case None => completeEmpty
           }

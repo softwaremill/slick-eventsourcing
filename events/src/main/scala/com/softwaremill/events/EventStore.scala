@@ -1,8 +1,9 @@
 package com.softwaremill.events
 
+import java.time.OffsetDateTime
+
 import com.softwaremill.database.SqlDatabase
 import com.typesafe.scalalogging.StrictLogging
-import org.joda.time.DateTime
 import slick.dbio.Effect.Write
 
 import scala.concurrent.ExecutionContext
@@ -28,7 +29,7 @@ trait SqlEventStoreSchema {
     def aggregateType = column[String]("aggregate_type")
     def aggregateId = column[Long]("aggregate_id")
     def aggregateIsNew = column[Boolean]("aggregate_is_new")
-    def created = column[DateTime]("created")
+    def created = column[OffsetDateTime]("created")
     def userId = column[Long]("user_id")
     def txId = column[Long]("tx_id")
     def eventJson = column[String]("event_json")

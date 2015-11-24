@@ -1,6 +1,7 @@
 package com.softwaremill.events
 
-import org.joda.time.DateTime
+import java.time.OffsetDateTime
+
 import org.json4s.DefaultFormats
 import org.scalatest.{FlatSpec, Matchers}
 import slick.dbio.DBIO
@@ -15,7 +16,7 @@ class RegistrySpec extends FlatSpec with Matchers {
     val listeners = Registry()
       .registerEventListener(el1)
       .registerEventListener(el2)
-      .lookupEventListener(Event(0, "", "", 0, aggregateIsNew = false, new DateTime(), 0L, 0L, ""))
+      .lookupEventListener(Event(0, "", "", 0, aggregateIsNew = false, OffsetDateTime.now(), 0L, 0L, ""))
 
     listeners.length should be (2)
 

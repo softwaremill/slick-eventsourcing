@@ -26,9 +26,6 @@ val akkaHttpSession = "com.softwaremill.akka-http-session" %% "core" % "0.2.1"
 val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % "2.4.0"
 val akkaActor = "com.typesafe.akka" %% "akka-actor" % "2.4.0"
 
-val jodaTime = "joda-time" % "joda-time" % "2.6"
-val jodaConvert = "org.joda" % "joda-convert" % "1.7"
-
 val macwireMacros = "com.softwaremill.macwire" %% "macros" % "2.1.0" % "provided"
 val macwireUtil = "com.softwaremill.macwire" %% "util" % "2.1.0"
 
@@ -59,7 +56,7 @@ lazy val events = (project in file("events"))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(slf4jApi, scalaLogging, scalatest, typesafeConfig,
-      slick, jodaTime, jodaConvert, macwireMacros, macwireUtil, json4s,
+      slick, macwireMacros, macwireUtil, json4s,
       flyway % "test", h2 % "test", logbackClassic % "test")
   )
 

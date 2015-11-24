@@ -1,10 +1,10 @@
 package com.softwaremill.example.user
 
+import java.time.OffsetDateTime
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import com.softwaremill.events.UserType
 import com.softwaremill.example.common.Utils
-import org.joda.time.DateTime
 import com.softwaremill.macwire.tagging._
 
 case class User(
@@ -14,7 +14,7 @@ case class User(
   email: String,
   password: String,
   salt: String,
-  lastLogin: Option[DateTime]
+  lastLogin: Option[OffsetDateTime]
 )
 
 object User {

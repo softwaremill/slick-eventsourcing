@@ -1,20 +1,20 @@
 package com.softwaremill.example.api
 
+import java.time.{OffsetDateTime, Clock}
+import java.time.format.DateTimeFormatter
+
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{AuthorizationFailedRejection, Directive1, Route}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshaller}
 import akka.stream.Materializer
-import com.softwaremill.common.Clock
 import com.softwaremill.database.SqlDatabase
 import com.softwaremill.events.{CommandResult, EventMachine, HandleContext}
 import com.softwaremill.example.user.{User, UserModel}
 import com.softwaremill.macwire.tagging._
 import com.softwaremill.session.SessionDirectives._
 import com.softwaremill.session.SessionManager
-import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
 import org.json4s.JsonAST.JString
 import org.json4s._
 import slick.dbio.{DBIOAction, Effect, NoStream}
@@ -29,11 +29,11 @@ trait RoutesSupport extends JsonSupport with SessionSupport with DatabaseSupport
 }
 
 trait JsonSupport {
-  protected val dateTimeFormat = ISODateTimeFormat.basicDateTime()
-  protected val dateTimeSerializer = new CustomSerializer[DateTime](formats => ({
-    case JString(s) => dateTimeFormat.parseDateTime(s)
+  protected val dateTimeFormat = DateTimeFormatter.ISO_DATE_TIME
+  protected val dateTimeSerializer = new CustomSerializer[OffsetDateTime](formats => ({
+    case JString(s) => OffsetDateTime.parse(s, dateTimeFormat)
   }, {
-    case d: DateTime => JString(dateTimeFormat.print(d))
+    case d: OffsetDateTime => JString(dateTimeFormat.format(d))
   }))
 
   protected implicit def jsonFormats: Formats = DefaultFormats + dateTimeSerializer

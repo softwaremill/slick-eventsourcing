@@ -1,9 +1,10 @@
 package com.softwaremill.example.apikey
 
+import java.time.OffsetDateTime
+
 import com.softwaremill.database.{DBWrite, DBRead, SqlDatabase}
 import com.softwaremill.macwire.tagging._
 import com.softwaremill.example.user.User
-import org.joda.time.DateTime
 
 import scala.concurrent.ExecutionContext
 
@@ -25,7 +26,7 @@ class ApikeyModel(protected val database: SqlDatabase)(implicit ec: ExecutionCon
     apikeys.filter(t => t.id === id).delete.map(_ => ())
 }
 
-case class Apikey(id: Long @@ Apikey, userId: Long @@ User, apikey: String, created: DateTime)
+case class Apikey(id: Long @@ Apikey, userId: Long @@ User, apikey: String, created: OffsetDateTime)
 
 trait SqlApikeySchema {
   protected val database: SqlDatabase
@@ -39,7 +40,7 @@ trait SqlApikeySchema {
     def id = column[Long @@ Apikey]("id")
     def userId = column[Long @@ User]("user_id")
     def apikey = column[String]("apikey")
-    def created = column[DateTime]("created")
+    def created = column[OffsetDateTime]("created")
 
     def * = (id, userId, apikey, created) <> ((Apikey.apply _).tupled, Apikey.unapply)
   }

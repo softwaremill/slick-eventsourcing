@@ -1,6 +1,7 @@
 package com.softwaremill.events
 
-import com.softwaremill.common.Clock
+import java.time.Clock
+
 import com.softwaremill.common.id.IdGenerator
 import com.softwaremill.database.{DBReadWrite, SqlDatabase}
 import com.typesafe.scalalogging.StrictLogging

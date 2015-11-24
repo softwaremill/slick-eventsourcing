@@ -1,8 +1,9 @@
 package com.softwaremill.example.user
 
+import java.time.OffsetDateTime
+
 import com.softwaremill.database.{DBWrite, DBRead, SqlDatabase}
 import com.softwaremill.macwire.tagging._
-import org.joda.time.DateTime
 
 import scala.concurrent.ExecutionContext
 
@@ -32,7 +33,7 @@ class UserModel(protected val database: SqlDatabase)(implicit val ec: ExecutionC
 
   def updateNew(user: User): DBWrite = (users += user).map(_ => ())
 
-  def updateLastLogin(userId: Long @@ User, lastLogin: DateTime): DBWrite = {
+  def updateLastLogin(userId: Long @@ User, lastLogin: OffsetDateTime): DBWrite = {
     users.filter(_.id === userId).map(_.lastLogin).update(Some(lastLogin)).map(_ => ())
   }
 }
@@ -53,7 +54,7 @@ trait SqlUserSchema {
     def email = column[String]("email")
     def password = column[String]("password")
     def salt = column[String]("salt")
-    def lastLogin = column[Option[DateTime]]("last_login")
+    def lastLogin = column[Option[OffsetDateTime]]("last_login")
 
     def * = (id, login, loginLowerCase, email, password, salt, lastLogin) <> ((User.apply _).tupled, User.unapply)
   }

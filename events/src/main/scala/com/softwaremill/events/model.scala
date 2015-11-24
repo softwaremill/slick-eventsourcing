@@ -1,9 +1,9 @@
 package com.softwaremill.events
 
-import com.softwaremill.common.Clock
+import java.time.{ZoneOffset, Clock, OffsetDateTime}
+
 import com.softwaremill.common.id.IdGenerator
 import com.softwaremill.macwire.tagging._
-import org.joda.time.DateTime
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.Serialization
 
@@ -24,7 +24,7 @@ object AggregateForEvent {
 }
 
 case class Event[T](id: Long, eventType: String, aggregateType: String, rawAggregateId: Long, aggregateIsNew: Boolean,
-    created: DateTime, rawUserId: Long, txId: Long, data: T)(implicit formats: Formats) {
+    created: OffsetDateTime, rawUserId: Long, txId: Long, data: T)(implicit formats: Formats) {
 
   def aggregateId[U](implicit afe: AggregateForEvent[T, U]): Long @@ U = rawAggregateId.taggedWith[U]
 
@@ -65,7 +65,7 @@ case class PartialEvent[U, T](eventType: String, aggregateType: String, aggregat
   def withIds(implicit idGenerator: IdGenerator, clock: Clock) =
     PartialEventWithId(idGenerator.nextId(), eventType, aggregateType,
       aggregateId.getOrElse(idGenerator.nextId().taggedWith[U]),
-      aggregateIsNew, clock.now, data)(formats)
+      aggregateIsNew, clock.instant().atOffset(ZoneOffset.UTC), data)(formats)
 }
 
 object PartialEvent {
@@ -76,13 +76,13 @@ object PartialEvent {
 }
 
 case class PartialEventWithId[U, T](id: Long, eventType: String, aggregateType: String, aggregateId: Long @@ U, aggregateIsNew: Boolean,
-    created: DateTime, data: T)(val formats: Formats) {
+    created: OffsetDateTime, data: T)(val formats: Formats) {
   def toEvent(rawUserId: Long, txId: Long) =
     Event[T](id, eventType, aggregateType, aggregateId, aggregateIsNew, created, rawUserId, txId, data)(formats)
 }
 
 case class StoredEvent(id: Long, eventType: String, aggregateType: String, aggregateId: Long, aggregateIsNew: Boolean,
-  created: DateTime, userId: Long, txId: Long, eventJson: String)
+  created: OffsetDateTime, userId: Long, txId: Long, eventJson: String)
 
 /**
  * Context in which events are created and handled: for example, the currently logged in user id.

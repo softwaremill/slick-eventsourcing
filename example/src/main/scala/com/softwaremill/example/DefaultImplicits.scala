@@ -1,6 +1,7 @@
 package com.softwaremill.example
 
-import com.softwaremill.common.Clock
+import java.time.Clock
+
 import com.softwaremill.common.id.IdGenerator
 
 import scala.concurrent.ExecutionContext

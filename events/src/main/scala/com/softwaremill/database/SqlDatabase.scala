@@ -1,8 +1,9 @@
 package com.softwaremill.database
 
+import java.time.{OffsetDateTime, ZoneOffset}
+
 import com.softwaremill.macwire.tagging._
 import com.typesafe.scalalogging.StrictLogging
-import org.joda.time.{DateTimeZone, DateTime}
 import slick.driver.JdbcProfile
 import slick.jdbc.JdbcBackend._
 
@@ -13,9 +14,9 @@ case class SqlDatabase(
 
   import driver.api._
 
-  implicit val dateTimeColumnType = MappedColumnType.base[DateTime, java.sql.Timestamp](
-    dt => new java.sql.Timestamp(dt.getMillis),
-    t => new DateTime(t.getTime).withZone(DateTimeZone.UTC)
+  implicit val offsetDateTimeColumnType = MappedColumnType.base[OffsetDateTime, java.sql.Timestamp](
+    dt => new java.sql.Timestamp(dt.toInstant.toEpochMilli),
+    t => t.toLocalDateTime.atOffset(ZoneOffset.UTC)
   )
 
   implicit def taggedIdColumnType[U] = MappedColumnType.base[Long @@ U, Long](
