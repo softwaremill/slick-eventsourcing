@@ -12,11 +12,17 @@ class RegistrySpec extends FlatSpec with Matchers {
 
     val el1: EventListener[String] = _ => DBIO.successful(Nil)
     val el2: EventListener[String] = _ => DBIO.successful(Nil)
+    val el3: EventListener[String] = _ => DBIO.successful(Nil)
 
-    val listeners = Registry()
+    val reg = Registry()
       .registerEventListener(el1)
+      .registerAsyncEventListener(el3)
       .registerEventListener(el2)
-      .lookupEventListener(Event(0, "", "", 0, aggregateIsNew = false, OffsetDateTime.now(), 0L, 0L, ""))
+      .registerAsyncEventListener(el1)
+
+    val e = Event(0, "", "", 0, aggregateIsNew = false, OffsetDateTime.now(), 0L, 0, "")
+    val listeners = reg.lookupEventListeners(e)
+    val asyncListeners = reg.lookupAsyncEventListeners(e)
 
     listeners.length should be (2)
 
@@ -25,5 +31,9 @@ class RegistrySpec extends FlatSpec with Matchers {
 
     listeners(1).eq(el1) should be (false)
     listeners(1).eq(el2) should be (true)
+
+    asyncListeners.length should be (2)
+    asyncListeners(0).eq(el3) should be (true)
+    asyncListeners(1).eq(el1) should be (true)
   }
 }

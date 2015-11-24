@@ -31,6 +31,7 @@ class Main() extends StrictLogging {
       lazy val system = _system
     }
 
+    modules.asyncEventRunner.start()
     SchemaUpdate.update(modules.config.dbH2Url)
 
     val startFuture = Http().bindAndHandle(modules.routes, modules.config.serverHost, modules.config.serverPort)

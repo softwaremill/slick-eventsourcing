@@ -101,7 +101,7 @@ trait DatabaseSupport {
   }
 
   def cmdResult[F, S](cr: CommandResult[F, S])(body: Either[F, S] => Route)(implicit hc: HandleContext): Route = {
-    dbResult(eventMachine.handle(cr))(body)
+    onSuccess(eventMachine.run(cr))(body)
   }
 
   implicit def dbioActionMarshaller[R, S <: NoStream, E <: Effect](implicit rMarshaller: ToEntityMarshaller[R]): ToEntityMarshaller[DBIOAction[R, S, E]] = {

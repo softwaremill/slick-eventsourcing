@@ -87,19 +87,13 @@ case class StoredEvent(id: Long, eventType: String, aggregateType: String, aggre
 /**
  * Context in which events are created and handled: for example, the currently logged in user id.
  */
-case class HandleContext(rawUserId: Long, txId: Option[Long]) {
-  def withNewTxIdIfUnset(implicit idGenerator: IdGenerator): (HandleContext, Long) = txId match {
-    case None =>
-      val newTxId = idGenerator.nextId()
-      (HandleContext(rawUserId, Some(newTxId)), newTxId)
-    case Some(t) =>
-      (this, t)
-  }
+class HandleContext private[events] (private[events] val rawUserId: Long) {
+  def withUserId[User](userId: Long @@ User)(implicit ut: UserType[User]) = new HandleContext(userId)
 }
 
 object HandleContext {
-  val System = HandleContext(-1L, None)
-  def apply[User](userId: Long @@ User)(implicit ut: UserType[User]): HandleContext = HandleContext(userId, None)
+  def apply[User](userId: Long @@ User)(implicit ut: UserType[User]) = new HandleContext(userId)
+  val System = new HandleContext(-1L)
 }
 
 trait HandleContextTransform[U] {

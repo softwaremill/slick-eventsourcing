@@ -4,7 +4,7 @@ import java.time.Clock
 
 import akka.actor.ActorSystem
 import com.softwaremill.database.{DatabaseConfig, SqlDatabase}
-import com.softwaremill.events.{EventMachine, EventStore, Registry}
+import com.softwaremill.events.{EventsModule, EventMachine, EventStore, Registry}
 import com.softwaremill.example.apikey.ApikeyModule
 import com.softwaremill.common.id.IdGenerator
 import com.softwaremill.example.email.EmailService
@@ -14,7 +14,8 @@ import com.typesafe.scalalogging.StrictLogging
 
 trait Beans extends StrictLogging
     with UserModule
-    with ApikeyModule {
+    with ApikeyModule
+    with EventsModule {
 
   lazy val config = new DatabaseConfig with ServerConfig {
     override def rootConfig = ConfigFactory.load()
@@ -30,9 +31,6 @@ trait Beans extends StrictLogging
   lazy val registry = addUserListeners
     .andThen(addApikeyListeners)
     .apply(Registry())
-
-  lazy val eventStore = new EventStore(sqlDatabase)
-  lazy val eventMachine = new EventMachine(sqlDatabase, registry, eventStore)
 
   def system: ActorSystem
 }

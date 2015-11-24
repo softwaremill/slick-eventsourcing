@@ -8,7 +8,7 @@ case class UserRegistered(
     encryptedPassword: String,
     salt: String
 ) extends HandleContextTransform[User] {
-  override def apply(e: PartialEventWithId[User, _], hc: HandleContext) = hc.copy(rawUserId = e.aggregateId)
+  override def apply(e: PartialEventWithId[User, _], hc: HandleContext) = hc.withUserId(e.aggregateId)
 }
 
 object UserRegistered {
@@ -16,7 +16,7 @@ object UserRegistered {
 }
 
 case class UserLoggedIn() extends HandleContextTransform[User] {
-  override def apply(e: PartialEventWithId[User, _], hc: HandleContext) = hc.copy(rawUserId = e.aggregateId)
+  override def apply(e: PartialEventWithId[User, _], hc: HandleContext) = hc.withUserId(e.aggregateId)
 }
 object UserLoggedIn {
   implicit val afe = AggregateForEvent[UserLoggedIn, User]

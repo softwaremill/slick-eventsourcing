@@ -2,10 +2,20 @@ package com.softwaremill.events
 
 import scala.reflect.ClassTag
 
-case class Registry(eventListeners: Map[Class[_], List[EventListener[_]]], modelUpdates: Map[Class[_], List[ModelUpdate[_]]]) {
+case class Registry(
+    eventListeners: Map[Class[_], List[EventListener[_]]],
+    asyncEventListeners: Map[Class[_], List[EventListener[_]]],
+    modelUpdates: Map[Class[_], List[ModelUpdate[_]]]
+) {
+
   def registerEventListener[T: ClassTag](h: EventListener[T]): Registry = {
     val key = implicitly[ClassTag[T]].runtimeClass
     copy(eventListeners = eventListeners + (key -> (h :: eventListeners.getOrElse(key, Nil))))
+  }
+
+  def registerAsyncEventListener[T: ClassTag](h: EventListener[T]): Registry = {
+    val key = implicitly[ClassTag[T]].runtimeClass
+    copy(asyncEventListeners = asyncEventListeners + (key -> (h :: asyncEventListeners.getOrElse(key, Nil))))
   }
 
   def registerModelUpdate[T: ClassTag](h: ModelUpdate[T]): Registry = {
@@ -13,23 +23,29 @@ case class Registry(eventListeners: Map[Class[_], List[EventListener[_]]], model
     copy(modelUpdates = modelUpdates + (key -> (h :: modelUpdates.getOrElse(key, Nil))))
   }
 
-  private[events] def lookupEventListener[T](e: Event[T]): List[EventListener[T]] =
+  private[events] def lookupEventListeners[T](e: Event[T]): List[EventListener[T]] =
     // reverse so that listeners are returned in the order in which they were registered
-    doLookup(e.data.getClass, eventListeners).asInstanceOf[Option[List[EventListener[T]]]].getOrElse(Nil).reverse
+    doLookup[T, EventListener](e.data.getClass, eventListeners)
 
-  private[events] def lookupModelUpdate[T](e: Event[T]): List[ModelUpdate[T]] =
-    doLookup(e.data.getClass, modelUpdates).asInstanceOf[Option[List[ModelUpdate[T]]]].getOrElse(Nil).reverse
+  private[events] def hasAsyncEventListeners(e: Event[_]): Boolean =
+    lookupAsyncEventListeners(e).nonEmpty
 
-  private def doLookup(cls: Class[_], m: Map[Class[_], Any]): Option[Any] = {
+  private[events] def lookupAsyncEventListeners[T](e: Event[T]): List[EventListener[T]] =
+    doLookup[T, EventListener](e.data.getClass, asyncEventListeners)
+
+  private[events] def lookupModelUpdates[T](e: Event[T]): List[ModelUpdate[T]] =
+    doLookup[T, ModelUpdate](e.data.getClass, modelUpdates)
+
+  private def doLookup[T, W[_]](cls: Class[_], m: Map[Class[_], Any]): List[W[T]] = {
     m.get(cls).orElse {
       (Option(cls.getSuperclass).toList ++ cls.getInterfaces.toList)
         .view
         .map(doLookup(_, m))
-        .collectFirst { case Some(t) => t }
-    }
+        .find(_.nonEmpty)
+    }.asInstanceOf[Option[List[W[T]]]].getOrElse(Nil).reverse
   }
 }
 
 object Registry {
-  def apply(): Registry = Registry(Map(), Map())
+  def apply(): Registry = Registry(Map(), Map(), Map())
 }
