@@ -1,7 +1,5 @@
 package com.softwaremill.example
 
-import java.time.Clock
-
 import akka.actor.ActorSystem
 import com.softwaremill.common.id.DefaultIdGenerator
 import com.softwaremill.database.SqlDatabase
@@ -24,7 +22,6 @@ trait Beans extends StrictLogging
 
   override lazy val sqlDatabase = SqlDatabase.createH2(config.dbH2Url)
 
-  lazy val clock: Clock = Clock.systemUTC()
   lazy val idGenerator = new DefaultIdGenerator(datacenterId = 1)
 
   lazy val emailService = new EmailService()

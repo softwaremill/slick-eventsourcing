@@ -17,12 +17,11 @@ trait EventsModule {
   lazy val asyncEventScheduler = new BlockingQueueAsyncEventScheduler(asyncEventQueue)
   lazy val eventMachine = new EventMachine(sqlDatabase, registry, eventStore, asyncEventScheduler, idGenerator, clock)
   lazy val asyncEventRunner = new BlockingQueueAsyncEventRunner(asyncEventQueue, eventMachine)
-
-  def clock: Clock
-  def idGenerator: IdGenerator
+  lazy val clock = Clock.systemUTC()
 
   implicit def ec: ExecutionContext
 
+  def idGenerator: IdGenerator
   def sqlDatabase: SqlDatabase
   def registry: Registry
 }
