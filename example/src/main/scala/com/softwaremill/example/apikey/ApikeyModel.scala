@@ -2,9 +2,10 @@ package com.softwaremill.example.apikey
 
 import java.time.OffsetDateTime
 
-import com.softwaremill.database.{DBWrite, DBRead, SqlDatabase}
-import com.softwaremill.macwire.tagging._
+import com.softwaremill.database.SqlDatabase
 import com.softwaremill.example.user.User
+import com.softwaremill.macwire.tagging._
+import slick.dbio.Effect.{Read, Write}
 
 import scala.concurrent.ExecutionContext
 
@@ -13,16 +14,16 @@ class ApikeyModel(protected val database: SqlDatabase)(implicit ec: ExecutionCon
   import database._
   import database.driver.api._
 
-  def findByApikey(apikey: String): DBRead[Option[Apikey]] =
+  def findByApikey(apikey: String): DBIOAction[Option[Apikey], NoStream, Read] =
     apikeys.filter(_.apikey === apikey).result.map(_.headOption)
 
-  def findByUserId(userId: Long @@ User): DBRead[List[Apikey]] =
+  def findByUserId(userId: Long @@ User): DBIOAction[List[Apikey], NoStream, Read] =
     apikeys.filter(_.userId === userId).result.map(_.toList)
 
-  def updateNew(apikey: Apikey): DBWrite =
+  def updateNew(apikey: Apikey): DBIOAction[Unit, NoStream, Write] =
     (apikeys += apikey).map(_ => ())
 
-  def updateDelete(id: Long @@ Apikey): DBWrite =
+  def updateDelete(id: Long @@ Apikey): DBIOAction[Unit, NoStream, Write] =
     apikeys.filter(t => t.id === id).delete.map(_ => ())
 }
 

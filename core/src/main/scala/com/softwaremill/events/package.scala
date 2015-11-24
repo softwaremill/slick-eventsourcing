@@ -2,8 +2,7 @@ package com.softwaremill
 
 import com.softwaremill.macwire.tagging._
 import com.softwaremill.common.id.IdGenerator
-import com.softwaremill.database.{DBReadWrite, DBRead}
-import slick.dbio.Effect.Read
+import slick.dbio.Effect.{Write, Read}
 import slick.dbio.{DBIO, DBIOAction, NoStream}
 
 import scala.concurrent.ExecutionContext
@@ -35,6 +34,6 @@ package object events {
     }
   }
 
-  type EventListener[T] = Event[T] => DBRead[List[PartialEvent[_, _]]]
-  type ModelUpdate[T] = Event[T] => DBReadWrite
+  type EventListener[T] = Event[T] => DBIOAction[List[PartialEvent[_, _]], NoStream, Read]
+  type ModelUpdate[T] = Event[T] => DBIOAction[Unit, NoStream, Read with Write]
 }

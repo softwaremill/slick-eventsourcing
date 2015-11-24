@@ -2,8 +2,9 @@ package com.softwaremill.example.user
 
 import java.time.OffsetDateTime
 
-import com.softwaremill.database.{DBWrite, DBRead, SqlDatabase}
+import com.softwaremill.database.SqlDatabase
 import com.softwaremill.macwire.tagging._
+import slick.dbio.Effect.{Write, Read}
 
 import scala.concurrent.ExecutionContext
 
@@ -12,28 +13,28 @@ class UserModel(protected val database: SqlDatabase)(implicit val ec: ExecutionC
   import database._
   import database.driver.api._
 
-  def findById(userId: Long @@ User): DBRead[Option[User]] =
+  def findById(userId: Long @@ User): DBIOAction[Option[User], NoStream, Read] =
     findOneWhere(_.id === userId)
 
   private def findOneWhere(condition: Users => Rep[Boolean]) =
     users.filter(condition).result.headOption
 
-  def findByEmail(email: String): DBRead[Option[User]] =
+  def findByEmail(email: String): DBIOAction[Option[User], NoStream, Read] =
     findOneWhere(_.email.toLowerCase === email.toLowerCase)
 
-  def findByLowerCasedLogin(login: String): DBRead[Option[User]] =
+  def findByLowerCasedLogin(login: String): DBIOAction[Option[User], NoStream, Read] =
     findOneWhere(_.loginLowerCase === login.toLowerCase)
 
-  def findByLoginOrEmail(loginOrEmail: String): DBRead[Option[User]] = {
+  def findByLoginOrEmail(loginOrEmail: String): DBIOAction[Option[User], NoStream, Read] = {
     findByLowerCasedLogin(loginOrEmail).flatMap {
       case s @ Some(_) => DBIO.successful(s)
       case None => findByEmail(loginOrEmail)
     }
   }
 
-  def updateNew(user: User): DBWrite = (users += user).map(_ => ())
+  def updateNew(user: User): DBIOAction[Unit, NoStream, Write] = (users += user).map(_ => ())
 
-  def updateLastLogin(userId: Long @@ User, lastLogin: OffsetDateTime): DBWrite = {
+  def updateLastLogin(userId: Long @@ User, lastLogin: OffsetDateTime): DBIOAction[Unit, NoStream, Write] = {
     users.filter(_.id === userId).map(_.lastLogin).update(Some(lastLogin)).map(_ => ())
   }
 }
