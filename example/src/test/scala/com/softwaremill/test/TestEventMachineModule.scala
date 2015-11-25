@@ -1,6 +1,5 @@
 package com.softwaremill.test
 
-import com.softwaremill.id.DefaultIdGenerator
 import com.softwaremill.events._
 import com.typesafe.scalalogging.StrictLogging
 import org.scalatest.concurrent.ScalaFutures
@@ -8,9 +7,6 @@ import org.scalatest.time.{Millis, Span}
 import slick.dbio.DBIO
 
 trait TestEventMachineModule extends ScalaFutures with StrictLogging with EventsModule {
-  lazy val idGenerator = new DefaultIdGenerator()
-  implicit lazy val ec = scala.concurrent.ExecutionContext.Implicits.global
-
   implicit val patience = PatienceConfig(timeout = Span(1000, Millis))
 
   def runCommand[F, S](cr: CommandResult[F, S])(implicit hc: HandleContext) = {

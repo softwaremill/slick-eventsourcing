@@ -1,12 +1,15 @@
 package com.softwaremill.test
 
 import com.softwaremill.example.common.Utils
+import com.softwaremill.id.IdGenerator
 import com.softwaremill.tagging._
 import com.softwaremill.example.user.{UserModel, User}
 import slick.dbio.{DBIOAction, NoStream}
 
+import scala.concurrent.ExecutionContext
+
 trait TestSqlData {
-  this: BaseSqlSpec =>
+  this: SqlSpec =>
 
   lazy val userModel = new UserModel(database)
 
@@ -26,4 +29,7 @@ trait TestSqlData {
   implicit class RunDbAction[R](action: DBIOAction[R, NoStream, Nothing]) {
     def run(): R = database.db.run(action).futureValue
   }
+
+  def idGenerator: IdGenerator
+  implicit def ec: ExecutionContext
 }

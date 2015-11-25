@@ -4,9 +4,14 @@ import com.softwaremill.events.{HandleContext, Registry}
 import com.softwaremill.example.apikey.{ApikeyCommands, ApikeyCreated, ApikeyModel}
 import com.softwaremill.example.email.EmailService
 import com.softwaremill.example.user.UserCommands.UserExists
-import com.softwaremill.test.{BaseSqlSpec, EventSink, TestEventMachineModule, TestSqlData}
+import com.softwaremill.id.DefaultIdGenerator
+import com.softwaremill.test.{SqlSpec, EventSink, TestEventMachineModule, TestSqlData}
+import org.scalatest.{FlatSpec, Matchers}
 
-class UserModuleSpec extends BaseSqlSpec with TestSqlData { spec =>
+class UserModuleSpec extends FlatSpec with Matchers with SqlSpec with TestSqlData { spec =>
+
+  lazy val idGenerator = new DefaultIdGenerator()
+  implicit lazy val ec = scala.concurrent.ExecutionContext.Implicits.global
 
   def createModules = new UserModule with TestEventMachineModule {
     lazy val emailService = new EmailService {
@@ -23,6 +28,8 @@ class UserModuleSpec extends BaseSqlSpec with TestSqlData { spec =>
     override lazy val registry = addUserListeners(Registry())
       .registerEventListener(apikeyCreatedEventSink)
     override lazy val eventsDatabase = spec.database
+    override lazy val idGenerator = spec.idGenerator
+    override implicit lazy val ec = spec.ec
   }
 
   it should "register a new user" in {

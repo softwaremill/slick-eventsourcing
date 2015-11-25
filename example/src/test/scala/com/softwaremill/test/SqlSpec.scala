@@ -3,8 +3,13 @@ package com.softwaremill.test
 import com.softwaremill.events.EventsDatabase
 import com.softwaremill.example.database.SchemaUpdate
 import org.scalatest._
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Millis, Span}
 
-trait BaseSqlSpec extends BaseSpec with BeforeAndAfterAll with BeforeAndAfterEach {
+trait SqlSpec extends BeforeAndAfterAll with BeforeAndAfterEach with ScalaFutures {
+  this: Suite =>
+
+  implicit val patience = PatienceConfig(timeout = Span(1000, Millis))
 
   private val connectionString = "jdbc:h2:mem:slickeventsourcing_test" + this.getClass.getSimpleName + ";DB_CLOSE_DELAY=-1"
 
