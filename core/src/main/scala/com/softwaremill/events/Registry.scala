@@ -3,7 +3,7 @@ package com.softwaremill.events
 import scala.reflect.ClassTag
 
 /**
- * Maps event types to event listeners (synchronous and asynchornous) as well as model update functions.
+ * Maps event types to event listeners (synchronous and asynchronous) as well as model update functions.
  */
 case class Registry(
     eventListeners: Map[Class[_], List[EventListener[_]]],
@@ -27,7 +27,6 @@ case class Registry(
   }
 
   private[events] def lookupEventListeners[T](e: Event[T]): List[EventListener[T]] =
-    // reverse so that listeners are returned in the order in which they were registered
     doLookup[T, EventListener](e.data.getClass, eventListeners)
 
   private[events] def hasAsyncEventListeners(e: Event[_]): Boolean =
@@ -40,12 +39,14 @@ case class Registry(
     doLookup[T, ModelUpdate](e.data.getClass, modelUpdates)
 
   private def doLookup[T, W[_]](cls: Class[_], m: Map[Class[_], Any]): List[W[T]] = {
-    m.get(cls).orElse {
-      (Option(cls.getSuperclass).toList ++ cls.getInterfaces.toList)
-        .view
-        .map(doLookup(_, m))
-        .find(_.nonEmpty)
-    }.asInstanceOf[Option[List[W[T]]]].getOrElse(Nil).reverse
+    val clss = supertypes(cls)
+    // reverse so that listeners are returned in the order in which they were registered
+    clss.flatMap(m.getOrElse(_, Nil).asInstanceOf[List[W[T]]].reverse)
+  }
+
+  private def supertypes(cls: Class[_]): List[Class[_]] = {
+    val parents = Option(cls.getSuperclass).toList ++ cls.getInterfaces.toList
+    cls :: parents.flatMap(supertypes)
   }
 }
 

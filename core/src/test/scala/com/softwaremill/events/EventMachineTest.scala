@@ -9,6 +9,7 @@ import slick.dbio.DBIOAction
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class EventMachineTest extends FlatSpec with Matchers with SqlSpec with Eventually {
+  import EventMachineTest._
 
   def createModules(r: Registry) = new EventsModule {
     override implicit def ec = global
@@ -91,10 +92,12 @@ class EventMachineTest extends FlatSpec with Matchers with SqlSpec with Eventual
   }
 }
 
-case class Aggregate1()
+object EventMachineTest {
+  case class Aggregate1()
 
-case class Event1(data: String)
-object Event1 extends AggregateForEvent[Event1, Aggregate1]
+  case class Event1(data: String)
+  object Event1 extends AggregateForEvent[Event1, Aggregate1]
 
-case class Event2(data: String)
-object Event2 extends AggregateForEvent[Event2, Aggregate1]
+  case class Event2(data: String)
+  object Event2 extends AggregateForEvent[Event2, Aggregate1]
+}
