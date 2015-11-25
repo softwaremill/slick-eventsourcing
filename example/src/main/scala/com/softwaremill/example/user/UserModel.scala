@@ -3,7 +3,7 @@ package com.softwaremill.example.user
 import java.time.OffsetDateTime
 
 import com.softwaremill.database.SqlDatabase
-import com.softwaremill.macwire.tagging._
+import com.softwaremill.tagging._
 import slick.dbio.Effect.{Write, Read}
 
 import scala.concurrent.ExecutionContext

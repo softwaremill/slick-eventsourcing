@@ -1,7 +1,7 @@
 package com.softwaremill.test
 
 import com.softwaremill.example.common.Utils
-import com.softwaremill.macwire.tagging._
+import com.softwaremill.tagging._
 import com.softwaremill.example.user.{UserModel, User}
 import slick.dbio.{DBIOAction, NoStream}
 

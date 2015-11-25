@@ -3,7 +3,7 @@ package com.softwaremill.events
 import java.time.Clock
 import java.util.concurrent.LinkedBlockingQueue
 
-import com.softwaremill.common.id.IdGenerator
+import com.softwaremill.id.IdGenerator
 import com.softwaremill.database.SqlDatabase
 
 import scala.concurrent.ExecutionContext

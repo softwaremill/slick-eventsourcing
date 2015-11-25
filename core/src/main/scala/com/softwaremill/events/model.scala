@@ -2,8 +2,8 @@ package com.softwaremill.events
 
 import java.time.{ZoneOffset, Clock, OffsetDateTime}
 
-import com.softwaremill.common.id.IdGenerator
-import com.softwaremill.macwire.tagging._
+import com.softwaremill.id.IdGenerator
+import com.softwaremill.tagging._
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.Serialization
 

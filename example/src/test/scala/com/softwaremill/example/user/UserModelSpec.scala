@@ -1,6 +1,6 @@
 package com.softwaremill.example.user
 
-import com.softwaremill.macwire.tagging._
+import com.softwaremill.tagging._
 import com.softwaremill.test.{TestSqlData, BaseSqlSpec}
 
 import scala.language.implicitConversions

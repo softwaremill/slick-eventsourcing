@@ -1,7 +1,7 @@
 package com.softwaremill.example
 
 import akka.actor.ActorSystem
-import com.softwaremill.common.id.DefaultIdGenerator
+import com.softwaremill.id.DefaultIdGenerator
 import com.softwaremill.database.SqlDatabase
 import com.softwaremill.events.{EventsModule, Registry}
 import com.softwaremill.example.apikey.ApikeyModule

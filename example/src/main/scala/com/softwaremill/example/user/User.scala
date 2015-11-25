@@ -5,7 +5,7 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import com.softwaremill.events.UserType
 import com.softwaremill.example.common.Utils
-import com.softwaremill.macwire.tagging._
+import com.softwaremill.tagging._
 
 case class User(
   id: Long @@ User,

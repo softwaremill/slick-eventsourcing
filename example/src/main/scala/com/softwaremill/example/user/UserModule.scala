@@ -1,6 +1,6 @@
 package com.softwaremill.example.user
 
-import com.softwaremill.common.id.IdGenerator
+import com.softwaremill.id.IdGenerator
 import com.softwaremill.database.SqlDatabase
 import com.softwaremill.events.Registry
 import com.softwaremill.example.email.EmailService

@@ -1,6 +1,6 @@
 package com.softwaremill.test
 
-import com.softwaremill.common.id.DefaultIdGenerator
+import com.softwaremill.id.DefaultIdGenerator
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Span}
 import org.scalatest.{FlatSpec, Matchers}

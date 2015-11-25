@@ -1,6 +1,6 @@
 package com.softwaremill.example.api
 
-import java.time.{OffsetDateTime, Clock}
+import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
 import akka.http.scaladsl.marshalling._
@@ -12,9 +12,9 @@ import akka.stream.Materializer
 import com.softwaremill.database.SqlDatabase
 import com.softwaremill.events.{CommandResult, EventMachine, HandleContext}
 import com.softwaremill.example.user.{User, UserModel}
-import com.softwaremill.macwire.tagging._
 import com.softwaremill.session.SessionDirectives._
 import com.softwaremill.session.SessionManager
+import com.softwaremill.tagging._
 import org.json4s.JsonAST.JString
 import org.json4s._
 import slick.dbio.{DBIOAction, Effect, NoStream}

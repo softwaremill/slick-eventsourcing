@@ -1,6 +1,6 @@
 package com.softwaremill.example.api
 
-import com.softwaremill.macwire.tagging._
+import com.softwaremill.tagging._
 import com.softwaremill.example.user.User
 import com.softwaremill.session.{MultiValueSessionSerializer, SessionSerializer}
 

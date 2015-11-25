@@ -1,7 +1,7 @@
 package com.softwaremill
 
-import com.softwaremill.macwire.tagging._
-import com.softwaremill.common.id.IdGenerator
+import com.softwaremill.tagging._
+import com.softwaremill.id.IdGenerator
 import slick.dbio.Effect.{Write, Read}
 import slick.dbio.{DBIO, DBIOAction, NoStream}
 

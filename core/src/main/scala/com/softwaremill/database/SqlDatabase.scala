@@ -2,7 +2,7 @@ package com.softwaremill.database
 
 import java.time.{OffsetDateTime, ZoneOffset}
 
-import com.softwaremill.macwire.tagging._
+import com.softwaremill.tagging._
 import com.typesafe.scalalogging.StrictLogging
 import slick.driver.JdbcProfile
 import slick.jdbc.JdbcBackend._

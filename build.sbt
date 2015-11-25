@@ -26,8 +26,8 @@ val akkaHttpSession = "com.softwaremill.akka-http-session" %% "core" % "0.2.1"
 val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % "2.4.0"
 val akkaActor = "com.typesafe.akka" %% "akka-actor" % "2.4.0"
 
-val macwireMacros = "com.softwaremill.macwire" %% "macros" % "2.1.0" % "provided"
-val macwireUtil = "com.softwaremill.macwire" %% "util" % "2.1.0"
+val tagging = "com.softwaremill.common" %% "tagging" % "1.0.0"
+val idGenerator = "com.softwaremill.common" %% "id-generator" % "1.0.0"
 
 name := "slick-eventsourcing"
 
@@ -56,7 +56,7 @@ lazy val core = (project in file("core"))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(slf4jApi, scalaLogging, scalatest, typesafeConfig,
-      slick, macwireMacros, macwireUtil, json4s,
+      slick, tagging, idGenerator, json4s,
       flyway % "test", h2 % "test", logbackClassic % "test")
   )
 
@@ -66,7 +66,7 @@ lazy val example = (project in file("example"))
   .settings(
     libraryDependencies ++=
       Seq(akkaActor, akkaHttp, akkaHttpTestkit, akkaSlf4j, akkaHttpSession, scalatest, slickHikari, flyway, h2,
-        macwireMacros, logbackClassic),
+        logbackClassic),
     mainClass in Compile := Some("com.softwaremill.example.Main"),
     assemblyJarName in assembly := "app.jar"
   ) dependsOn (core)

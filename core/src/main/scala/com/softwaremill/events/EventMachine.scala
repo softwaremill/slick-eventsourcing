@@ -2,7 +2,7 @@ package com.softwaremill.events
 
 import java.time.Clock
 
-import com.softwaremill.common.id.IdGenerator
+import com.softwaremill.id.IdGenerator
 import com.softwaremill.database.SqlDatabase
 import com.typesafe.scalalogging.StrictLogging
 import slick.dbio.Effect.{Transactional, Read, Write}

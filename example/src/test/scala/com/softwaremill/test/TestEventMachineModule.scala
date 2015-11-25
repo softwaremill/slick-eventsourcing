@@ -1,6 +1,6 @@
 package com.softwaremill.test
 
-import com.softwaremill.common.id.DefaultIdGenerator
+import com.softwaremill.id.DefaultIdGenerator
 import com.softwaremill.events._
 import com.typesafe.scalalogging.StrictLogging
 import org.scalatest.concurrent.ScalaFutures
