@@ -2,9 +2,10 @@
 
 Using `slick-eventsourcing` you can write applications which take advantage of transactional database features such as consistency and SQL query capabilities and in addition contain (or, in fact, are driven by) a **full audit log** of all actions in the system.
 
-# Example
-
+[![Build Status](https://travis-ci.org/softwaremill/slick-eventsourcing.svg)](https://travis-ci.org/softwaremill/slick-eventsourcing)
 [![Join the chat at https://gitter.im/softwaremill/slick-eventsourcing](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/softwaremill/slick-eventsourcing?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+# Example
 
 If you'd like to see a simple application written using the framework, see the `example` directory in the sources. You can run it with `./example-start.sh` and then pointing you web browser to [localhost:8080](http://localhost:8080). Observe the console output for events that are created and handled.
 
