@@ -1,0 +1,1 @@
+../../../../main/resources/events_schema.sql
