@@ -1,16 +1,12 @@
-package com.softwaremill.database
+package com.softwaremill.events
 
 import java.time.{OffsetDateTime, ZoneOffset}
 
 import com.softwaremill.tagging._
-import com.typesafe.scalalogging.StrictLogging
 import slick.driver.JdbcProfile
 import slick.jdbc.JdbcBackend._
 
-case class SqlDatabase(
-    db: slick.jdbc.JdbcBackend.Database,
-    driver: JdbcProfile
-) {
+class EventsDatabase(val db: slick.jdbc.JdbcBackend.Database, val driver: JdbcProfile) {
 
   import driver.api._
 
@@ -29,9 +25,9 @@ case class SqlDatabase(
   }
 }
 
-object SqlDatabase extends StrictLogging {
-  def createH2(connectionString: String): SqlDatabase = {
+object EventsDatabase {
+  def createH2(connectionString: String): EventsDatabase = {
     val db = Database.forURL(connectionString)
-    SqlDatabase(db, slick.driver.H2Driver)
+    new EventsDatabase(db, slick.driver.H2Driver)
   }
 }

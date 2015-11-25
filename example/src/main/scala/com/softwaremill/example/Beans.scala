@@ -2,8 +2,7 @@ package com.softwaremill.example
 
 import akka.actor.ActorSystem
 import com.softwaremill.id.DefaultIdGenerator
-import com.softwaremill.database.SqlDatabase
-import com.softwaremill.events.{EventsModule, Registry}
+import com.softwaremill.events.{EventsDatabase, EventsModule, Registry}
 import com.softwaremill.example.apikey.ApikeyModule
 import com.softwaremill.example.database.DatabaseConfig
 import com.softwaremill.example.email.EmailService
@@ -20,7 +19,7 @@ trait Beans extends StrictLogging
     override def rootConfig = ConfigFactory.load()
   }
 
-  override lazy val sqlDatabase = SqlDatabase.createH2(config.dbH2Url)
+  override lazy val eventsDatabase = EventsDatabase.createH2(config.dbH2Url)
 
   lazy val idGenerator = new DefaultIdGenerator(datacenterId = 1)
 

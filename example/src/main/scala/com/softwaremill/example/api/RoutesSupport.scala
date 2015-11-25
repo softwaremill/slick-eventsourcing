@@ -9,8 +9,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{AuthorizationFailedRejection, Directive1, Route}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshaller}
 import akka.stream.Materializer
-import com.softwaremill.database.SqlDatabase
-import com.softwaremill.events.{CommandResult, EventMachine, HandleContext}
+import com.softwaremill.events.{EventsDatabase, CommandResult, EventMachine, HandleContext}
 import com.softwaremill.example.user.{User, UserModel}
 import com.softwaremill.session.SessionDirectives._
 import com.softwaremill.session.SessionManager
@@ -91,11 +90,11 @@ trait SessionSupport {
 }
 
 trait DatabaseSupport {
-  def sqlDatabase: SqlDatabase
+  def eventsDatabase: EventsDatabase
   def eventMachine: EventMachine
 
   def dbResult[R](action: DBIOAction[R, NoStream, Nothing]): Directive1[R] = {
-    onSuccess(sqlDatabase.db.run(action))
+    onSuccess(eventsDatabase.db.run(action))
   }
 
   def cmdResult[F, S](cr: CommandResult[F, S])(body: Either[F, S] => Route)(implicit hc: HandleContext): Route = {
@@ -104,7 +103,7 @@ trait DatabaseSupport {
 
   implicit def dbioActionMarshaller[R, S <: NoStream, E <: Effect](implicit rMarshaller: ToEntityMarshaller[R]): ToEntityMarshaller[DBIOAction[R, S, E]] = {
     Marshaller { implicit ec => (value: DBIOAction[R, S, E]) =>
-      sqlDatabase.db.run(value).flatMap(r => rMarshaller.apply(r))
+      eventsDatabase.db.run(value).flatMap(r => rMarshaller.apply(r))
     }
   }
 }

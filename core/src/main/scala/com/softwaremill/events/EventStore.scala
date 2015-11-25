@@ -2,13 +2,12 @@ package com.softwaremill.events
 
 import java.time.OffsetDateTime
 
-import com.softwaremill.database.SqlDatabase
 import com.typesafe.scalalogging.StrictLogging
 import slick.dbio.Effect.Write
 
 import scala.concurrent.ExecutionContext
 
-class EventStore(protected val database: SqlDatabase)(implicit ec: ExecutionContext) extends SqlEventStoreSchema with StrictLogging {
+class EventStore(protected val database: EventsDatabase)(implicit ec: ExecutionContext) extends SqlEventStoreSchema with StrictLogging {
 
   import database.driver.api._
 
@@ -16,7 +15,7 @@ class EventStore(protected val database: SqlDatabase)(implicit ec: ExecutionCont
 }
 
 trait SqlEventStoreSchema {
-  protected val database: SqlDatabase
+  protected val database: EventsDatabase
 
   import database._
   import database.driver.api._

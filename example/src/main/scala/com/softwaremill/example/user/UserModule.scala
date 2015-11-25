@@ -1,8 +1,7 @@
 package com.softwaremill.example.user
 
 import com.softwaremill.id.IdGenerator
-import com.softwaremill.database.SqlDatabase
-import com.softwaremill.events.Registry
+import com.softwaremill.events.{EventsDatabase, Registry}
 import com.softwaremill.example.email.EmailService
 import com.softwaremill.example.apikey.ApikeyCommands
 
@@ -11,7 +10,7 @@ import scala.concurrent.ExecutionContext
 trait UserModule {
   lazy val userCommands = new UserCommands(userModel, idGenerator)
   lazy val userListeners = new UserListeners(userModel)
-  lazy val userModel = new UserModel(sqlDatabase)
+  lazy val userModel = new UserModel(eventsDatabase)
 
   def addUserListeners = (_: Registry)
     .registerModelUpdate(userListeners.registeredUpdate)
@@ -21,7 +20,7 @@ trait UserModule {
 
   def apikeyCommands: ApikeyCommands
   def emailService: EmailService
-  def sqlDatabase: SqlDatabase
+  def eventsDatabase: EventsDatabase
   def idGenerator: IdGenerator
 
   implicit def ec: ExecutionContext

@@ -2,13 +2,13 @@ package com.softwaremill.example.user
 
 import java.time.OffsetDateTime
 
-import com.softwaremill.database.SqlDatabase
+import com.softwaremill.events.EventsDatabase
 import com.softwaremill.tagging._
 import slick.dbio.Effect.{Write, Read}
 
 import scala.concurrent.ExecutionContext
 
-class UserModel(protected val database: SqlDatabase)(implicit val ec: ExecutionContext) extends SqlUserSchema {
+class UserModel(protected val database: EventsDatabase)(implicit val ec: ExecutionContext) extends SqlUserSchema {
 
   import database._
   import database.driver.api._
@@ -41,7 +41,7 @@ class UserModel(protected val database: SqlDatabase)(implicit val ec: ExecutionC
 
 trait SqlUserSchema {
 
-  protected val database: SqlDatabase
+  protected val database: EventsDatabase
 
   import database._
   import database.driver.api._

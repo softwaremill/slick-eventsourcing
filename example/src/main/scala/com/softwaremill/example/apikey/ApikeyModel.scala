@@ -2,14 +2,14 @@ package com.softwaremill.example.apikey
 
 import java.time.OffsetDateTime
 
-import com.softwaremill.database.SqlDatabase
+import com.softwaremill.events.EventsDatabase
 import com.softwaremill.example.user.User
 import com.softwaremill.tagging._
 import slick.dbio.Effect.{Read, Write}
 
 import scala.concurrent.ExecutionContext
 
-class ApikeyModel(protected val database: SqlDatabase)(implicit ec: ExecutionContext) extends SqlApikeySchema {
+class ApikeyModel(protected val database: EventsDatabase)(implicit ec: ExecutionContext) extends SqlApikeySchema {
 
   import database._
   import database.driver.api._
@@ -30,7 +30,7 @@ class ApikeyModel(protected val database: SqlDatabase)(implicit ec: ExecutionCon
 case class Apikey(id: Long @@ Apikey, userId: Long @@ User, apikey: String, created: OffsetDateTime)
 
 trait SqlApikeySchema {
-  protected val database: SqlDatabase
+  protected val database: EventsDatabase
 
   import database._
   import database.driver.api._

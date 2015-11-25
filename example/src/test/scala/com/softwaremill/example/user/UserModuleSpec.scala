@@ -16,13 +16,13 @@ class UserModuleSpec extends BaseSqlSpec with TestSqlData { spec =>
         super.sendEmail(to, content)
       }
     }
-    lazy val apikeyCommands = new ApikeyCommands(new ApikeyModel(sqlDatabase))
+    lazy val apikeyCommands = new ApikeyCommands(new ApikeyModel(eventsDatabase))
 
     lazy val apikeyCreatedEventSink = new EventSink[ApikeyCreated]
 
     override lazy val registry = addUserListeners(Registry())
       .registerEventListener(apikeyCreatedEventSink)
-    override lazy val sqlDatabase = spec.database
+    override lazy val eventsDatabase = spec.database
   }
 
   it should "register a new user" in {

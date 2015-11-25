@@ -3,7 +3,6 @@ package com.softwaremill.events
 import java.time.Clock
 
 import com.softwaremill.id.IdGenerator
-import com.softwaremill.database.SqlDatabase
 import com.typesafe.scalalogging.StrictLogging
 import slick.dbio.Effect.{Transactional, Read, Write}
 import slick.dbio.{DBIO, DBIOAction, NoStream}
@@ -11,7 +10,7 @@ import slick.dbio.{DBIO, DBIOAction, NoStream}
 import scala.concurrent.{Future, ExecutionContext}
 
 class EventMachine(
-    database: SqlDatabase,
+    database: EventsDatabase,
     registry: Registry,
     eventStore: EventStore,
     asyncEventScheduler: AsyncEventScheduler,

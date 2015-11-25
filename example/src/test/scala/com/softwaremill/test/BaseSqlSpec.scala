@@ -1,15 +1,14 @@
 package com.softwaremill.test
 
-import com.softwaremill.database.SqlDatabase
+import com.softwaremill.events.EventsDatabase
 import com.softwaremill.example.database.SchemaUpdate
 import org.scalatest._
-import org.scalatest.concurrent.ScalaFutures
 
 trait BaseSqlSpec extends BaseSpec with BeforeAndAfterAll with BeforeAndAfterEach {
 
   private val connectionString = "jdbc:h2:mem:slickeventsourcing_test" + this.getClass.getSimpleName + ";DB_CLOSE_DELAY=-1"
 
-  lazy val database = SqlDatabase.createH2(connectionString)
+  lazy val database = EventsDatabase.createH2(connectionString)
 
   override protected def beforeAll() {
     super.beforeAll()
