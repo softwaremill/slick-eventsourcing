@@ -8,7 +8,7 @@ import org.scalatest.time.{Millis, Span}
 trait SqlSpec extends BeforeAndAfterAll with BeforeAndAfterEach with ScalaFutures {
   this: Suite =>
 
-  implicit val patience = PatienceConfig(timeout = Span(1000, Millis))
+  implicit val patience = PatienceConfig(timeout = Span(2000, Millis))
 
   private val connectionString = "jdbc:h2:mem:slickeventsourcing_test" + this.getClass.getSimpleName + ";DB_CLOSE_DELAY=-1"
 
