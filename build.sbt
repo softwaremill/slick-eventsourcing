@@ -33,7 +33,7 @@ name := "slick-eventsourcing"
 // factor out common settings into a sequence
 lazy val commonSettings = scalariformSettings ++ Seq(
   organization := "com.softwaremill.events",
-  version := "0.1.0",
+  version := "0.1.1",
   scalaVersion := "2.11.7",
 
   scalacOptions ++= Seq("-unchecked", "-deprecation"),

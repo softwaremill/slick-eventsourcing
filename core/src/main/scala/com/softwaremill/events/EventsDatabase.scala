@@ -12,7 +12,7 @@ class EventsDatabase(val db: slick.jdbc.JdbcBackend.Database, val driver: JdbcPr
 
   implicit val offsetDateTimeColumnType = MappedColumnType.base[OffsetDateTime, java.sql.Timestamp](
     dt => new java.sql.Timestamp(dt.toInstant.toEpochMilli),
-    t => t.toLocalDateTime.atOffset(ZoneOffset.UTC)
+    t => t.toInstant.atOffset(ZoneOffset.UTC)
   )
 
   implicit def taggedIdColumnType[U] = MappedColumnType.base[Long @@ U, Long](
