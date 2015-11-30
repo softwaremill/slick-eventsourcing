@@ -4,7 +4,8 @@ import Keys._
 import scalariform.formatter.preferences._
 
 val slickVersion = "3.1.0"
-val akkaHttpVersion = "2.0-M1"
+val akkaHttpVersion = "2.0-M2"
+val akkaVersion = "2.4.1"
 
 val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.13"
 val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0"
@@ -24,16 +25,16 @@ val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.1.3"
 val typesafeConfig = "com.typesafe" % "config" % "1.3.0"
 val akkaHttp = "com.typesafe.akka" %% "akka-http-experimental" % akkaHttpVersion
 val akkaHttpTestkit = "com.typesafe.akka" %% "akka-http-testkit-experimental" % akkaHttpVersion % "test"
-val akkaHttpSession = "com.softwaremill.akka-http-session" %% "core" % "0.2.1"
-val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % "2.4.0"
-val akkaActor = "com.typesafe.akka" %% "akka-actor" % "2.4.0"
+val akkaHttpSession = "com.softwaremill.akka-http-session" %% "core" % "0.2.2"
+val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
+val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
 
 name := "slick-eventsourcing"
 
 // factor out common settings into a sequence
 lazy val commonSettings = scalariformSettings ++ Seq(
   organization := "com.softwaremill.events",
-  version := "0.1.1",
+  version := "0.1.2",
   scalaVersion := "2.11.7",
 
   scalacOptions ++= Seq("-unchecked", "-deprecation"),

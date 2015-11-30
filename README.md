@@ -113,9 +113,11 @@ If an event causes a user to be logged in (e.g. a user registered or user logged
 # Using from SBT
 
 ````scala
-libraryDependencies += "com.softwaremill.events" %% "core" % "0.1.0"
+libraryDependencies += "com.softwaremill.events" %% "core" % "0.1.2"
 ````
 
 # Version history
 
 25/11/2015, 0.1: initial release
+27/11/2015, 0.1.1: bug fix
+30/11/2015, 0.1.2: updating to akka-http 2.0-m2
