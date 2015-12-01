@@ -24,7 +24,6 @@ val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.1.3"
 // example only
 val typesafeConfig = "com.typesafe" % "config" % "1.3.0"
 val akkaHttp = "com.typesafe.akka" %% "akka-http-experimental" % akkaHttpVersion
-val akkaHttpTestkit = "com.typesafe.akka" %% "akka-http-testkit-experimental" % akkaHttpVersion % "test"
 val akkaHttpSession = "com.softwaremill.akka-http-session" %% "core" % "0.2.2"
 val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
 val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
@@ -95,7 +94,7 @@ lazy val example = (project in file("example"))
   .settings(
     publishArtifact := false,
     libraryDependencies ++= Seq(
-      akkaActor, akkaHttp, akkaHttpTestkit, akkaSlf4j, akkaHttpSession,
+      akkaActor, akkaHttp, akkaSlf4j, akkaHttpSession,
       scalatest, slickHikari, flyway, h2,
       logbackClassic, typesafeConfig),
     mainClass in Compile := Some("com.softwaremill.example.Main"),
