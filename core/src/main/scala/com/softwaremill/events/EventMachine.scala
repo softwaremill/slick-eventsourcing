@@ -45,18 +45,19 @@ class EventMachine(
       })
   }
 
-  def failOverFromStoredEvents() = {
+  def failOverFromStoredEvents(): Unit = {
     logger.info("Handling stored events: ")
-//    TODO: take parameter recoverTo: date? event id?
+    //    TODO: take parameter recoverTo: date? event id?
     val storedEvents: Future[Seq[StoredEvent]] = database.db.run(eventStore.getAll())
 
-    val eventsFuture = storedEvents.map(_.map(e => e.toEvent(registry.getEventPath(e.eventType))))
+    val eventsFuture = storedEvents.map(_.map(e => e.toEvent(registry.getEventClass(e.eventType))))
 
     def lookupEventAction(e: Event[Any]) = registry.lookupModelUpdates(e).map(_(e))
 
     val actionsFuture = for { events <- eventsFuture } yield events.flatMap(e => lookupEventAction(e))
 
-    actionsFuture.foreach(_.foreach(a => database.db.run(a)))
+    import database.driver.api._
+    actionsFuture.foreach(_.foreach(a => database.db.run(a.transactionally)))
 
     //TODO: update db in one try?
     //    val eventualActionFuture= actionsFuture.map(ac => DBIO.seq(ac: _*))

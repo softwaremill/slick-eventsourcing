@@ -3,8 +3,9 @@ package com.softwaremill.events
 import java.time.OffsetDateTime
 
 import com.typesafe.scalalogging.StrictLogging
-import slick.dbio.Effect.Write
-import slick.dbio.{DBIOAction, NoStream}
+import slick.dbio.{NoStream, DBIOAction}
+import slick.dbio.Effect.{Read, Write}
+import slick.profile.FixedSqlStreamingAction
 
 import scala.concurrent.ExecutionContext
 
@@ -19,7 +20,7 @@ class DefaultEventStore(protected val database: EventsDatabase)(implicit ec: Exe
 
   def store(event: StoredEvent): DBIOAction[Unit, NoStream, Write] = (events += event).map(_ => ())
 
-  def getAll() = events.result
+  def getAll(): FixedSqlStreamingAction[Seq[StoredEvent], StoredEvent, Read] = events.result
 }
 
 trait SqlEventStoreSchema {

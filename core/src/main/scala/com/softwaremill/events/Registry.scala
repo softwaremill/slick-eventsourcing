@@ -30,7 +30,7 @@ case class Registry(
     )
   }
 
-  val getEventPath = (simpleEventName: String) => eventQualifiedNames.get(simpleEventName)
+  val getEventClass = (simpleEventName: String) => eventQualifiedNames.get(simpleEventName)
   private val registerEventPath = (eventPaths: Map[String, Class[_]], item: Class[_]) => eventPaths + (item.getSimpleName -> item)
 
   private[events] def lookupEventListeners[T](e: Event[T]): List[EventListener[T]] =
