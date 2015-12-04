@@ -45,10 +45,14 @@ class EventMachine(
       })
   }
 
-  def failOverFromStoredEvents(): Unit = {
-    logger.info("Handling stored events: ")
+  def failOverFromStoredEvents(): Future[Int] = {
+    logger.info("Handling stored events")
     //    TODO: take parameter recoverTo: date? event id?
     val storedEvents: Future[Seq[StoredEvent]] = database.db.run(eventStore.getAll())
+
+    storedEvents.filter(_.nonEmpty).onSuccess {
+      case eventsList => logger.info(s"Number of events to recover: ${eventsList.length}")
+    }
 
     val eventsFuture = storedEvents.map(_.map(e => e.toEvent(registry.getEventClass(e.eventType))))
 
@@ -56,11 +60,16 @@ class EventMachine(
 
     val actionsFuture = for { events <- eventsFuture } yield events.flatMap(e => lookupEventAction(e))
 
-    import database.driver.api._
-    actionsFuture.foreach(_.foreach(a => database.db.run(a.transactionally)))
+    import scala.concurrent.Promise
+    val p = Promise[Int]
 
-    //TODO: update db in one try?
-    //    val eventualActionFuture= actionsFuture.map(ac => DBIO.seq(ac: _*))
+    import database.driver.api._
+    actionsFuture.foreach(_.foreach(action => database.db.run(action.transactionally).andThen{
+      case dbResponse =>
+        logger.info(s"Recovery db result: $dbResponse")
+        p success 1
+    }))
+    p.future
   }
 
   private[events] def runAsync[T](e: Event[T], hc: HandleContext): Future[Unit] = {
