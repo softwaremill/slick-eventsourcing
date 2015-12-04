@@ -6,7 +6,7 @@ import com.softwaremill.tagging._
 import slick.driver.JdbcProfile
 import slick.jdbc.JdbcBackend._
 
-class EventsDatabase(val db: slick.jdbc.JdbcBackend.Database, val driver: JdbcProfile) {
+class EventsDatabase(val db: slick.jdbc.JdbcBackend#Database, val driver: JdbcProfile) {
 
   import driver.api._
 
