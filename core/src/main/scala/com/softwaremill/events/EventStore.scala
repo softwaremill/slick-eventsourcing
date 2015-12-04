@@ -17,7 +17,9 @@ class DefaultEventStore(protected val database: EventsDatabase)(implicit ec: Exe
 
   import database.driver.api._
 
-  def store(event: StoredEvent) = (events += event).map(_ => ())
+  def store(event: StoredEvent): DBIOAction[Unit, NoStream, Write] = (events += event).map(_ => ())
+
+  def getAll() = events.result
 }
 
 trait SqlEventStoreSchema {

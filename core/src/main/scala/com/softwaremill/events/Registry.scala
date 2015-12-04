@@ -8,7 +8,8 @@ import scala.reflect.ClassTag
 case class Registry(
     eventListeners: Map[Class[_], List[EventListener[_]]],
     asyncEventListeners: Map[Class[_], List[EventListener[_]]],
-    modelUpdates: Map[Class[_], List[ModelUpdate[_]]]
+    modelUpdates: Map[Class[_], List[ModelUpdate[_]]],
+    eventQualifiedNames: Map[String, Class[_]]
 ) {
 
   def registerEventListener[T: ClassTag](h: EventListener[T]): Registry = {
@@ -23,8 +24,14 @@ case class Registry(
 
   def registerModelUpdate[T: ClassTag](h: ModelUpdate[T]): Registry = {
     val key = implicitly[ClassTag[T]].runtimeClass
-    copy(modelUpdates = modelUpdates + (key -> (h :: modelUpdates.getOrElse(key, Nil))))
+    copy(
+      modelUpdates = modelUpdates + (key -> (h :: modelUpdates.getOrElse(key, Nil))),
+      eventQualifiedNames = registerEventPath(eventQualifiedNames, key)
+    )
   }
+
+  val getEventPath = (simpleEventName: String) => eventQualifiedNames.get(simpleEventName)
+  private val registerEventPath = (eventPaths: Map[String, Class[_]], item: Class[_]) => eventPaths + (item.getSimpleName -> item)
 
   private[events] def lookupEventListeners[T](e: Event[T]): List[EventListener[T]] =
     doLookup[T, EventListener](e.data.getClass, eventListeners)
@@ -51,5 +58,5 @@ case class Registry(
 }
 
 object Registry {
-  def apply(): Registry = Registry(Map(), Map(), Map())
+  def apply(): Registry = Registry(Map(), Map(), Map(), Map())
 }

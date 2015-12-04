@@ -4,10 +4,10 @@ import java.time.Clock
 
 import com.softwaremill.id.IdGenerator
 import com.typesafe.scalalogging.StrictLogging
-import slick.dbio.Effect.{Transactional, Read, Write}
+import slick.dbio.Effect.{Read, Transactional, Write}
 import slick.dbio.{DBIO, DBIOAction, NoStream}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class EventMachine(
     database: EventsDatabase,
@@ -43,6 +43,23 @@ class EventMachine(
         case (result, partialEvents) =>
           handleEvents(partialEvents, hc, txId).map(handledEvents => (result, handledEvents))
       })
+  }
+
+  def failOverFromStoredEvents() = {
+    logger.info("Handling stored events: ")
+//    TODO: take parameter recoverTo: date? event id?
+    val storedEvents: Future[Seq[StoredEvent]] = database.db.run(eventStore.getAll())
+
+    val eventsFuture = storedEvents.map(_.map(e => e.toEvent(registry.getEventPath(e.eventType))))
+
+    def lookupEventAction(e: Event[Any]) = registry.lookupModelUpdates(e).map(_(e))
+
+    val actionsFuture = for { events <- eventsFuture } yield events.flatMap(e => lookupEventAction(e))
+
+    actionsFuture.foreach(_.foreach(a => database.db.run(a)))
+
+    //TODO: update db in one try?
+    //    val eventualActionFuture= actionsFuture.map(ac => DBIO.seq(ac: _*))
   }
 
   private[events] def runAsync[T](e: Event[T], hc: HandleContext): Future[Unit] = {
