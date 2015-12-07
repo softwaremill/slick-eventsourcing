@@ -1,9 +1,10 @@
 package com.softwaremill.events
 
-import java.time.Clock
+import java.time.{Clock, OffsetDateTime}
 
 import com.softwaremill.id.IdGenerator
 import com.typesafe.scalalogging.StrictLogging
+import slick.backend.DatabasePublisher
 import slick.dbio.Effect.{Read, Transactional, Write}
 import slick.dbio.{DBIO, DBIOAction, NoStream}
 
@@ -45,32 +46,23 @@ class EventMachine(
       })
   }
 
-  def failOverFromStoredEvents(): Future[Int] = {
-    logger.info("Handling stored events")
-    //    TODO: take parameter recoverTo: date? event id?
-    val storedEvents: Future[Seq[StoredEvent]] = database.db.run(eventStore.getAll())
+  def failOverFromStoredEventsTo(timeLimit: OffsetDateTime = OffsetDateTime.now()): Unit = {
+    storedEventsCount().foreach(eventsCount => logger.info(s"Number of events to recover: $eventsCount"))
 
-    storedEvents.filter(_.nonEmpty).onSuccess {
-      case eventsList => logger.info(s"Number of events to recover: ${eventsList.length}")
-    }
+    val storedEvents: DatabasePublisher[StoredEvent] = database.db.stream(eventStore.getAll(timeLimit))
 
-    val eventsFuture = storedEvents.map(_.map(e => e.toEvent(registry.getEventClass(e.eventType))))
-
-    def lookupEventAction(e: Event[Any]) = registry.lookupModelUpdates(e).map(_(e))
-
-    val actionsFuture = for { events <- eventsFuture } yield events.flatMap(e => lookupEventAction(e))
-
-    import scala.concurrent.Promise
-    val p = Promise[Int]
+    val eventAction = storedEvents.mapResult(e => e.toEvent(registry.getEventClass(e.eventType)))
+      .mapResult(e => lookupEventAction(e))
 
     import database.driver.api._
-    actionsFuture.foreach(_.foreach(action => database.db.run(action.transactionally).andThen{
-      case dbResponse =>
-        logger.info(s"Recovery db result: $dbResponse")
-        p success 1
+    eventAction.foreach(_.foreach(action => database.db.run(action.transactionally).andThen {
+      case dbResponse => logger.info(s"Recovery db result: $dbResponse")
     }))
-    p.future
   }
+
+  private[events] def lookupEventAction(e: Event[Any]) = registry.lookupModelUpdates(e).map(_(e))
+
+  private[events] def storedEventsCount(): Future[Int] = database.db.run(eventStore.getLength(registry.getModelUpdateNames))
 
   private[events] def runAsync[T](e: Event[T], hc: HandleContext): Future[Unit] = {
     database.db.run(handleAsync(e, hc))

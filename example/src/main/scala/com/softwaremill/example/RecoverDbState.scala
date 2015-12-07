@@ -8,8 +8,6 @@ import com.softwaremill.example.api.{Routes, Session}
 import com.softwaremill.example.database.SchemaUpdate
 import com.softwaremill.session.{SessionConfig, SessionManager}
 
-import scala.concurrent.Future
-
 object RecoverDbState extends App {
   Locale.setDefault(Locale.US)
 
@@ -26,9 +24,6 @@ object RecoverDbState extends App {
   }
 
   SchemaUpdate.update(modules.config.dbH2Url)
-  private val handledEvents: Future[Int] = modules.eventMachine.failOverFromStoredEvents()
-
-  import scala.concurrent.ExecutionContext.Implicits.global
-  handledEvents.onComplete { case completed => _system.terminate() }
+  private val handledEvents = modules.eventMachine.failOverFromStoredEventsTo()
 
 }

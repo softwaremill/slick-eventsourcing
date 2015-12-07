@@ -9,7 +9,7 @@ case class Registry(
     eventListeners: Map[Class[_], List[EventListener[_]]],
     asyncEventListeners: Map[Class[_], List[EventListener[_]]],
     modelUpdates: Map[Class[_], List[ModelUpdate[_]]],
-    eventQualifiedNames: Map[String, Class[_]]
+    modelUpdatesClasses: Map[String, Class[_]]
 ) {
 
   def registerEventListener[T: ClassTag](h: EventListener[T]): Registry = {
@@ -26,12 +26,13 @@ case class Registry(
     val key = implicitly[ClassTag[T]].runtimeClass
     copy(
       modelUpdates = modelUpdates + (key -> (h :: modelUpdates.getOrElse(key, Nil))),
-      eventQualifiedNames = registerEventPath(eventQualifiedNames, key)
+      modelUpdatesClasses = registerEventClass(modelUpdatesClasses, key)
     )
   }
 
-  val getEventClass = (simpleEventName: String) => eventQualifiedNames.get(simpleEventName)
-  private val registerEventPath = (eventPaths: Map[String, Class[_]], item: Class[_]) => eventPaths + (item.getSimpleName -> item)
+  val getEventClass = (simpleEventName: String) => modelUpdatesClasses.get(simpleEventName)
+  val getModelUpdateNames = modelUpdatesClasses.keySet
+  private val registerEventClass = (eventPaths: Map[String, Class[_]], item: Class[_]) => eventPaths + (item.getSimpleName -> item)
 
   private[events] def lookupEventListeners[T](e: Event[T]): List[EventListener[T]] =
     doLookup[T, EventListener](e.data.getClass, eventListeners)

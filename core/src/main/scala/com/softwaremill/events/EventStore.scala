@@ -20,7 +20,9 @@ class DefaultEventStore(protected val database: EventsDatabase)(implicit ec: Exe
 
   def store(event: StoredEvent): DBIOAction[Unit, NoStream, Write] = (events += event).map(_ => ())
 
-  def getAll(): FixedSqlStreamingAction[Seq[StoredEvent], StoredEvent, Read] = events.result
+  def getAll(timeLimit: OffsetDateTime): FixedSqlStreamingAction[Seq[StoredEvent], StoredEvent, Read] = events.result
+
+  def getLength(eventTypes: Set[String]) = events.map(_.eventType).filter(_.inSetBind(eventTypes)).length.result
 }
 
 trait SqlEventStoreSchema {
