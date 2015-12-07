@@ -13,7 +13,7 @@ trait EventStore {
 }
 
 class DefaultEventStore(protected val database: EventsDatabase)(implicit ec: ExecutionContext)
-  extends EventStore with SqlEventStoreSchema with StrictLogging {
+    extends EventStore with SqlEventStoreSchema with StrictLogging {
 
   import database.driver.api._
 
