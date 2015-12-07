@@ -11,7 +11,7 @@ import scala.concurrent.ExecutionContext
  * Default wiring of the classes involved in handling the events.
  */
 trait EventsModule {
-  lazy val eventStore = new EventStore(eventsDatabase)
+  lazy val eventStore: EventStore = new DefaultEventStore(eventsDatabase)
   lazy val asyncEventQueue = new LinkedBlockingQueue[Event[_]]()
   lazy val asyncEventScheduler = new BlockingQueueAsyncEventScheduler(asyncEventQueue)
   lazy val eventMachine = new EventMachine(eventsDatabase, registry, eventStore, asyncEventScheduler, idGenerator, clock)

@@ -4,14 +4,20 @@ import java.time.OffsetDateTime
 
 import com.typesafe.scalalogging.StrictLogging
 import slick.dbio.Effect.Write
+import slick.dbio.{DBIOAction, NoStream}
 
 import scala.concurrent.ExecutionContext
 
-class EventStore(protected val database: EventsDatabase)(implicit ec: ExecutionContext) extends SqlEventStoreSchema with StrictLogging {
+trait EventStore {
+  def store(event: StoredEvent): DBIOAction[Unit, NoStream, Write]
+}
+
+class DefaultEventStore(protected val database: EventsDatabase)(implicit ec: ExecutionContext)
+  extends EventStore with SqlEventStoreSchema with StrictLogging {
 
   import database.driver.api._
 
-  def store(event: StoredEvent): DBIOAction[Unit, NoStream, Write] = (events += event).map(_ => ())
+  def store(event: StoredEvent) = (events += event).map(_ => ())
 }
 
 trait SqlEventStoreSchema {
