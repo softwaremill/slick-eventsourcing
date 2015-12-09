@@ -1,6 +1,6 @@
 package com.softwaremill.events
 
-import java.time.{Clock, OffsetDateTime}
+import java.time.{Clock, OffsetDateTime, ZoneOffset}
 
 import com.softwaremill.id.IdGenerator
 import com.typesafe.scalalogging.StrictLogging
@@ -9,6 +9,7 @@ import slick.dbio.Effect.{Read, Transactional, Write}
 import slick.dbio.{DBIO, DBIOAction, NoStream}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Success, Try}
 
 class EventMachine(
     database: EventsDatabase,
@@ -46,23 +47,42 @@ class EventMachine(
       })
   }
 
-  def failOverFromStoredEventsTo(timeLimit: OffsetDateTime = OffsetDateTime.now()): Unit = {
-    storedEventsCount().foreach(eventsCount => logger.info(s"Number of events to recover: $eventsCount"))
-
+  def failOverFromStoredEventsTo(
+    timeLimit: OffsetDateTime = clock.instant().atOffset(ZoneOffset.UTC),
+    logResult: PartialFunction[Try[Unit], Unit] = pf
+  ): Future[Int] = {
     val storedEvents: DatabasePublisher[StoredEvent] = database.db.stream(eventStore.getAll(timeLimit))
 
-    val eventAction = storedEvents.mapResult(e => e.toEvent(registry.getEventClass(e.eventType)))
-      .mapResult(e => lookupEventAction(e))
+    val eventActions = storedEvents.mapResult(e => e.toEvent(registry.getEventClass(e.eventType)))
+      .mapResult(lookupEventAction)
 
-    import database.driver.api._
-    eventAction.foreach(_.foreach(action => database.db.run(action.transactionally).andThen {
-      case dbResponse => logger.info(s"Recovery db result: $dbResponse")
-    }))
+    val countFuture = storedEventsCountFuture().map(storedEventsCount => logger.info(s"Number of events to recover: $storedEventsCount"))
+
+    import scala.concurrent.Promise
+    val p = Promise[Int]
+
+    val recoveredEventsFuture = eventActions.foreach(_.foreach(performActionInTx(_).andThen(logResult)))
+      .andThen { case _ => p success 1 }
+
+    for {
+      storedEventsCount <- countFuture
+      recoveredUnit <- recoveredEventsFuture
+    } yield ()
+
+    p.future
   }
 
-  private[events] def lookupEventAction(e: Event[Any]) = registry.lookupModelUpdates(e).map(_(e))
+  private val pf: PartialFunction[Try[Unit], Unit] = {
+    case dbResponse => logger.info(s"Recovery db result: $dbResponse")
+  }
+  private def performActionInTx(action: DBIOAction[Unit, NoStream, Read with Write]): Future[Unit] = {
+    import database.driver.api._
+    database.db.run(action.transactionally)
+  }
 
-  private[events] def storedEventsCount(): Future[Int] = database.db.run(eventStore.getLength(registry.getModelUpdateNames))
+  private def lookupEventAction(e: Event[Any]) = registry.lookupModelUpdates(e).map(_ (e))
+
+  private def storedEventsCountFuture(): Future[Int] = database.db.run(eventStore.getLength(registry.getModelUpdateNames))
 
   private[events] def runAsync[T](e: Event[T], hc: HandleContext): Future[Unit] = {
     database.db.run(handleAsync(e, hc))
@@ -118,7 +138,7 @@ class EventMachine(
 
     val doStore = eventStore.store(e.toStoredEvent).map(_ => List(e))
 
-    val executeModelUpdate = DBIO.seq(registry.lookupModelUpdates(e).map(_(e)): _*).map(_ => Nil)
+    val executeModelUpdate = DBIO.seq(registry.lookupModelUpdates(e).map(_ (e)): _*).map(_ => Nil)
 
     val listenerResults = registry.lookupEventListeners(e).map { listener =>
       for {

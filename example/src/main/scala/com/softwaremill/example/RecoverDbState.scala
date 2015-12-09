@@ -4,7 +4,7 @@ import java.util.Locale
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import com.softwaremill.example.api.{Routes, Session}
+import com.softwaremill.example.api.Session
 import com.softwaremill.example.database.SchemaUpdate
 import com.softwaremill.session.{SessionConfig, SessionManager}
 
@@ -14,7 +14,7 @@ object RecoverDbState extends App {
   implicit val _system = ActorSystem("slick-eventsourcing")
   implicit val _materializer = ActorMaterializer()
 
-  val modules = new Beans with Routes {
+  val modules = new Beans {
     lazy val sessionConfig = SessionConfig.fromConfig(config.rootConfig).copy(sessionEncryptData = true)
 
     implicit lazy val ec = _system.dispatcher
@@ -24,6 +24,6 @@ object RecoverDbState extends App {
   }
 
   SchemaUpdate.update(modules.config.dbH2Url)
-  private val handledEvents = modules.eventMachine.failOverFromStoredEventsTo()
+  modules.eventMachine.failOverFromStoredEventsTo()
 
 }
