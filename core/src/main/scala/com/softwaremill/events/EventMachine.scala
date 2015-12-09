@@ -9,7 +9,7 @@ import slick.dbio.Effect.{Read, Transactional, Write}
 import slick.dbio.{DBIO, DBIOAction, NoStream}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Success, Try}
+import scala.util.Try
 
 class EventMachine(
     database: EventsDatabase,
@@ -47,10 +47,14 @@ class EventMachine(
       })
   }
 
-  def failOverFromStoredEventsTo(
-    timeLimit: OffsetDateTime = clock.instant().atOffset(ZoneOffset.UTC),
-    logResult: PartialFunction[Try[Unit], Unit] = pf
-  ): Future[Int] = {
+  /**
+    * Recovers db state from event log.
+    * @param timeLimit Optional point in time till which events should be recovered.
+    * @param logResult Database query result logger.
+    * @return
+    */
+  def failOverFromStoredEventsTo(timeLimit: OffsetDateTime = clock.instant().atOffset(ZoneOffset.UTC),
+    logResult: PartialFunction[Try[Unit], Unit] = recoveredActionLogger): Future[Int] = {
     val storedEvents: DatabasePublisher[StoredEvent] = database.db.stream(eventStore.getAll(timeLimit))
 
     val eventActions = storedEvents.mapResult(e => e.toEvent(registry.getEventClass(e.eventType)))
@@ -72,15 +76,19 @@ class EventMachine(
     p.future
   }
 
-  private val pf: PartialFunction[Try[Unit], Unit] = {
+  private val recoveredActionLogger: PartialFunction[Try[Unit], Unit] = {
     case dbResponse => logger.info(s"Recovery db result: $dbResponse")
   }
-  private def performActionInTx(action: DBIOAction[Unit, NoStream, Read with Write]): Future[Unit] = {
+
+  private def performActionInTx(action: DBIOAction[Unit, NoStream, Read with Write]) = {
     import database.driver.api._
     database.db.run(action.transactionally)
   }
 
-  private def lookupEventAction(e: Event[Any]) = registry.lookupModelUpdates(e).map(_ (e))
+  private def lookupEventAction(eOpt: Option[Event[Any]]) = eOpt match {
+    case Some(e) => registry.lookupModelUpdates(e).map(_(e))
+    case None => List()
+  }
 
   private def storedEventsCountFuture(): Future[Int] = database.db.run(eventStore.getLength(registry.getModelUpdateNames))
 

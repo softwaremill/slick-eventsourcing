@@ -102,16 +102,14 @@ case class PartialEventWithId[U, T](id: Long, eventType: String, aggregateType: 
 case class StoredEvent(id: Long, eventType: String, aggregateType: String, aggregateId: Long, aggregateIsNew: Boolean,
   created: OffsetDateTime, userId: Long, txId: Long, eventJson: String){
 
-  def toEvent(clsOpt: Option[Class[_]]): Event[Any] = {
+  def toEvent(clazzOpt: Option[Class[_]]): Option[Event[Any]] = {
     //TODO: capture formats with event, maybe in registry
-
-    clsOpt match {
-      case Some(clazz) =>
+    clazzOpt.collect {
+      case clazz =>
         implicit val format: Formats = DefaultFormats
         implicit val m: Manifest[Any] = Manifest.classType(clazz)
         Event[Any](id, eventType, aggregateType, aggregateId, aggregateIsNew, created, userId, txId, Serialization.read(eventJson))(format)
     }
-
   }
 }
 
