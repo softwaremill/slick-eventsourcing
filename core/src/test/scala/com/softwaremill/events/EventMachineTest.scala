@@ -19,6 +19,9 @@ class EventMachineTest extends FlatSpec with Matchers with SqlSpec with Eventual
     override def eventsDatabase = database
   }
 
+  import org.scalatest.time.{Millis, Seconds, Span}
+  implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
+
   it should "run model updates, then event listeners" in {
     // given
     var actions = Vector.empty[String]
