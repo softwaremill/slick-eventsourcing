@@ -60,13 +60,13 @@ class EventMachine(
 
     val countFuture = storedEventsCountFuture().map(storedEventsCount => logger.info(s"Number of events to recover: $storedEventsCount"))
 
-    val recoveredEventsFuture = eventActions.foreach(_.foreach(e => performActionInTx(e).andThen {
+    val recoveredEventsFuture = () => eventActions.foreach(_.foreach(e => performActionInTx(e).andThen {
       case dbResponse => logger.info(s"Recovery db result: $dbResponse")
     }))
 
     for {
       storedEventsCount <- countFuture
-      recoveredEvents <- recoveredEventsFuture
+      recoveredEvents <- recoveredEventsFuture.apply()
     } yield recoveredEvents
   }
 
