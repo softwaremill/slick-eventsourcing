@@ -7,9 +7,7 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.{FlatSpec, Matchers}
 import slick.dbio.DBIOAction
 
-import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Success, Try}
 
 class EventMachineTest extends FlatSpec with Matchers with SqlSpec with Eventually {
   import EventMachineTest._
@@ -99,29 +97,18 @@ class EventMachineTest extends FlatSpec with Matchers with SqlSpec with Eventual
     var actions = Vector.empty[String]
 
     val m = createModules(Registry()
-      .registerModelUpdate[Event1] { e => DBIOAction.successful(()).map { r => actions :+= "mu1"; r } }
+      .registerModelUpdate[Event1] { e => DBIOAction.successful(()).map { r => actions :+= "mu1" + e.data.data; r } }
       .registerEventListener[Event1] { e => DBIOAction.successful(Nil).map { r => actions :+= "el1"; r } })
 
     implicit val hc = HandleContext.System
     val result = m.eventMachine.run(CommandResult.successful((), Event(Event1("x")).forNewAggregate)).futureValue
-    val result1 = m.eventMachine.run(CommandResult.successful((), Event(Event1("y")).forNewAggregate)).futureValue
-
-    val stack = new mutable.Stack[Try[Unit]]
-    val pf: PartialFunction[Try[Unit], Unit] = { case dbResponse => stack.push(dbResponse) }
 
     // when
-    val failOverFuture = m.eventMachine.failOverFromStoredEventsTo(logResult = pf)
+    val failOverFuture = m.eventMachine.failOverFromStoredEventsTo().futureValue
 
     // then
     result should be(Right(()))
-    eventually { stack shouldBe expectedStack }
-  }
-
-  private val expectedStack: mutable.Stack[Try[Unit]] = {
-    val b = new mutable.Stack[Try[Unit]]
-    b.push(Success(()))
-    b.push(Success(()))
-    b
+    actions should be (Vector("mu1x", "el1", "mu1x"))
   }
 }
 

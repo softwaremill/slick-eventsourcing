@@ -104,7 +104,7 @@ case class StoredEvent(id: Long, eventType: String, aggregateType: String, aggre
 
   def toEvent(clazzOpt: Option[Class[_]]): Option[Event[Any]] = {
     //TODO: capture formats with event, maybe in registry
-    clazzOpt.collect {
+    clazzOpt.map {
       case clazz =>
         implicit val format: Formats = DefaultFormats
         implicit val m: Manifest[Any] = Manifest.classType(clazz)

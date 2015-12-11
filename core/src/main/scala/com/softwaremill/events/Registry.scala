@@ -31,7 +31,7 @@ case class Registry(
   }
 
   val getEventClass = (simpleEventName: String) => modelUpdatesClasses.get(simpleEventName)
-  val getModelUpdateNames = modelUpdatesClasses.keySet
+  val getEventTypes = modelUpdatesClasses.keySet
   private val registerEventClass = (eventPaths: Map[String, Class[_]], item: Class[_]) => eventPaths + (item.getSimpleName -> item)
 
   private[events] def lookupEventListeners[T](e: Event[T]): List[EventListener[T]] =

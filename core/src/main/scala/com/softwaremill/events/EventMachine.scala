@@ -9,7 +9,6 @@ import slick.dbio.Effect.{Read, Transactional, Write}
 import slick.dbio.{DBIO, DBIOAction, NoStream}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 class EventMachine(
     database: EventsDatabase,
@@ -48,13 +47,12 @@ class EventMachine(
   }
 
   /**
-    * Recovers db state from event log.
-    * @param timeLimit Optional point in time till which events should be recovered.
-    * @param logResult Database query result logger.
-    * @return
-    */
-  def failOverFromStoredEventsTo(timeLimit: OffsetDateTime = clock.instant().atOffset(ZoneOffset.UTC),
-    logResult: PartialFunction[Try[Unit], Unit] = recoveredActionLogger): Future[Int] = {
+   * Recovers db state from event log.
+   *
+   * @param timeLimit Optional point in time till which events should be recovered.
+   * @return
+   */
+  def failOverFromStoredEventsTo(timeLimit: OffsetDateTime = clock.instant().atOffset(ZoneOffset.UTC)): Future[Unit] = {
     val storedEvents: DatabasePublisher[StoredEvent] = database.db.stream(eventStore.getAll(timeLimit))
 
     val eventActions = storedEvents.mapResult(e => e.toEvent(registry.getEventClass(e.eventType)))
@@ -62,22 +60,14 @@ class EventMachine(
 
     val countFuture = storedEventsCountFuture().map(storedEventsCount => logger.info(s"Number of events to recover: $storedEventsCount"))
 
-    import scala.concurrent.Promise
-    val p = Promise[Int]
-
-    val recoveredEventsFuture = eventActions.foreach(_.foreach(performActionInTx(_).andThen(logResult)))
-      .andThen { case _ => p success 1 }
+    val recoveredEventsFuture = eventActions.foreach(_.foreach(e => performActionInTx(e).andThen {
+      case dbResponse => logger.info(s"Recovery db result: $dbResponse")
+    }))
 
     for {
       storedEventsCount <- countFuture
-      recoveredUnit <- recoveredEventsFuture
-    } yield ()
-
-    p.future
-  }
-
-  private val recoveredActionLogger: PartialFunction[Try[Unit], Unit] = {
-    case dbResponse => logger.info(s"Recovery db result: $dbResponse")
+      recoveredEvents <- recoveredEventsFuture
+    } yield recoveredEvents
   }
 
   private def performActionInTx(action: DBIOAction[Unit, NoStream, Read with Write]) = {
@@ -90,7 +80,7 @@ class EventMachine(
     case None => List()
   }
 
-  private def storedEventsCountFuture(): Future[Int] = database.db.run(eventStore.getLength(registry.getModelUpdateNames))
+  private def storedEventsCountFuture() = database.db.run(eventStore.getLength(registry.getEventTypes))
 
   private[events] def runAsync[T](e: Event[T], hc: HandleContext): Future[Unit] = {
     database.db.run(handleAsync(e, hc))
