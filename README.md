@@ -5,6 +5,7 @@ Using `slick-eventsourcing` you can write applications which take advantage of t
 [![Build Status](https://travis-ci.org/softwaremill/slick-eventsourcing.svg)](https://travis-ci.org/softwaremill/slick-eventsourcing)
 [![Join the chat at https://gitter.im/softwaremill/slick-eventsourcing](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/softwaremill/slick-eventsourcing?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.softwaremill.events/core_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.softwaremill.events/core_2.11)
+[![Dependencies](https://app.updateimpact.com/badge/634276070333485056/slick-eventsourcing.svg?config=compile)](https://app.updateimpact.com/latest/634276070333485056/slick-eventsourcing)
 
 # Example
 
