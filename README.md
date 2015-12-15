@@ -126,3 +126,4 @@ In case you lost your database model but got event log, you can rebuild from the
 * 27/11/2015, 0.1.1: bug fix
 * 30/11/2015, 0.1.2: updating to akka-http 2.0-m2
 * 7/12/2015, 0.1.3: making `EventStore` a trait, changing param type in `EventsDatabase`
+* 15/12/2015, 0.1.4: initial recovery support
