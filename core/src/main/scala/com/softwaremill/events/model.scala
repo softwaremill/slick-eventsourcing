@@ -1,11 +1,11 @@
 package com.softwaremill.events
 
-import java.time.{ZoneOffset, Clock, OffsetDateTime}
+import java.time.{Clock, OffsetDateTime, ZoneOffset}
 
 import com.softwaremill.id.IdGenerator
 import com.softwaremill.tagging._
-import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.Serialization
+import org.json4s.{DefaultFormats, Formats}
 
 import scala.reflect.ClassTag
 
@@ -100,7 +100,18 @@ case class PartialEventWithId[U, T](id: Long, eventType: String, aggregateType: 
 }
 
 case class StoredEvent(id: Long, eventType: String, aggregateType: String, aggregateId: Long, aggregateIsNew: Boolean,
-  created: OffsetDateTime, userId: Long, txId: Long, eventJson: String)
+  created: OffsetDateTime, userId: Long, txId: Long, eventJson: String){
+
+  def toEvent(clazzOpt: Option[Class[_]]): Option[Event[Any]] = {
+    //TODO: capture formats with event, maybe in registry
+    clazzOpt.map {
+      case clazz =>
+        implicit val format: Formats = DefaultFormats
+        implicit val m: Manifest[Any] = Manifest.classType(clazz)
+        Event[Any](id, eventType, aggregateType, aggregateId, aggregateIsNew, created, userId, txId, Serialization.read(eventJson))(format)
+    }
+  }
+}
 
 /**
   * Context in which events are created and handled: for example, the currently logged in user id.

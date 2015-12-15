@@ -3,21 +3,30 @@ package com.softwaremill.events
 import java.time.OffsetDateTime
 
 import com.typesafe.scalalogging.StrictLogging
-import slick.dbio.Effect.Write
-import slick.dbio.{DBIOAction, NoStream}
+import slick.dbio
+import slick.dbio.Effect.{Read, Write}
+import slick.dbio.NoStream
+import slick.profile.FixedSqlStreamingAction
 
 import scala.concurrent.ExecutionContext
 
 trait EventStore {
-  def store(event: StoredEvent): DBIOAction[Unit, NoStream, Write]
+  def store(event: StoredEvent): dbio.DBIOAction[Unit, NoStream, Write]
+  def getAll(until: OffsetDateTime): FixedSqlStreamingAction[Seq[StoredEvent], StoredEvent, Read]
+  def getLength(eventTypes: Set[String]): dbio.DBIOAction[Int, NoStream, Nothing]
 }
 
 class DefaultEventStore(protected val database: EventsDatabase)(implicit ec: ExecutionContext)
     extends EventStore with SqlEventStoreSchema with StrictLogging {
 
+  import database._
   import database.driver.api._
 
-  def store(event: StoredEvent) = (events += event).map(_ => ())
+  def store(event: StoredEvent): DBIOAction[Unit, NoStream, Write] = (events += event).map(_ => ())
+
+  def getAll(until: OffsetDateTime): FixedSqlStreamingAction[Seq[StoredEvent], StoredEvent, Read] = events.filter(_.created < until).sortBy(_.id.asc).result
+
+  def getLength(eventTypes: Set[String]): DBIOAction[Int, NoStream, Nothing] = events.map(_.eventType).filter(_.inSetBind(eventTypes)).length.result
 }
 
 trait SqlEventStoreSchema {

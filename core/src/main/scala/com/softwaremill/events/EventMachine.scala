@@ -1,13 +1,14 @@
 package com.softwaremill.events
 
-import java.time.Clock
+import java.time.{Clock, OffsetDateTime}
 
 import com.softwaremill.id.IdGenerator
 import com.typesafe.scalalogging.StrictLogging
-import slick.dbio.Effect.{Transactional, Read, Write}
+import slick.backend.DatabasePublisher
+import slick.dbio.Effect.{Read, Transactional, Write}
 import slick.dbio.{DBIO, DBIOAction, NoStream}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class EventMachine(
     database: EventsDatabase,
@@ -44,6 +45,42 @@ class EventMachine(
           handleEvents(partialEvents, hc, txId).map(handledEvents => (result, handledEvents))
       })
   }
+
+  /**
+   * Recovers db state from event log.
+   *
+   * @param timeLimit Optional point in time till which events should be recovered.
+   * @return
+   */
+  def failOverFromStoredEvents(timeLimit: OffsetDateTime = OffsetDateTime.now()): Future[Unit] = {
+    val storedEvents: DatabasePublisher[StoredEvent] = database.db.stream(eventStore.getAll(timeLimit))
+
+    val eventActions = storedEvents.mapResult(e => e.toEvent(registry.getEventClass(e.eventType)))
+      .mapResult(lookupEventAction)
+
+    val countFuture = storedEventsCountFuture().map(storedEventsCount => logger.info(s"Number of events to recover: $storedEventsCount"))
+
+    val recoveredEventsFuture = () => eventActions.foreach(_.foreach(e => performActionInTx(e).andThen {
+      case dbResponse => logger.info(s"Recovery db result: $dbResponse")
+    }))
+
+    for {
+      storedEventsCount <- countFuture
+      recoveredEvents <- recoveredEventsFuture.apply()
+    } yield recoveredEvents
+  }
+
+  private def performActionInTx(action: DBIOAction[Unit, NoStream, Read with Write]) = {
+    import database.driver.api._
+    database.db.run(action.transactionally)
+  }
+
+  private def lookupEventAction(eOpt: Option[Event[Any]]) = eOpt match {
+    case Some(e) => registry.lookupModelUpdates(e).map(_(e))
+    case None => List()
+  }
+
+  private def storedEventsCountFuture() = database.db.run(eventStore.getLength(registry.getEventTypes))
 
   private[events] def runAsync[T](e: Event[T], hc: HandleContext): Future[Unit] = {
     database.db.run(handleAsync(e, hc))
@@ -99,7 +136,7 @@ class EventMachine(
 
     val doStore = eventStore.store(e.toStoredEvent).map(_ => List(e))
 
-    val executeModelUpdate = DBIO.seq(registry.lookupModelUpdates(e).map(_(e)): _*).map(_ => Nil)
+    val executeModelUpdate = DBIO.seq(registry.lookupModelUpdates(e).map(_ (e)): _*).map(_ => Nil)
 
     val listenerResults = registry.lookupEventListeners(e).map { listener =>
       for {

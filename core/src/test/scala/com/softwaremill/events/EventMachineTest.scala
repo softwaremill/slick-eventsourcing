@@ -4,8 +4,9 @@ import java.util.concurrent.ConcurrentHashMap
 
 import com.softwaremill.id.DefaultIdGenerator
 import org.scalatest.concurrent.Eventually
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.{FlatSpec, Matchers}
 import slick.dbio.DBIOAction
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class EventMachineTest extends FlatSpec with Matchers with SqlSpec with Eventually {
@@ -89,6 +90,25 @@ class EventMachineTest extends FlatSpec with Matchers with SqlSpec with Eventual
     finally {
       m.asyncEventRunner.stop()
     }
+  }
+
+  it should "recover stored events" in {
+    // given
+    var actions = Vector.empty[String]
+
+    val m = createModules(Registry()
+      .registerModelUpdate[Event1] { e => DBIOAction.successful(()).map { r => actions :+= "mu1" + e.data.data; r } }
+      .registerEventListener[Event1] { e => DBIOAction.successful(Nil).map { r => actions :+= "el1"; r } })
+
+    implicit val hc = HandleContext.System
+    val result = m.eventMachine.run(CommandResult.successful((), Event(Event1("x")).forNewAggregate)).futureValue
+
+    // when
+    val failOverFuture = m.eventMachine.failOverFromStoredEvents().futureValue
+
+    // then
+    result should be(Right(()))
+    actions should be (Vector("mu1x", "el1", "mu1x"))
   }
 }
 
