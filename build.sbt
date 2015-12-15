@@ -71,7 +71,8 @@ lazy val commonSettings = scalariformSettings ++ Seq(
         </developer>
       </developers>,
   licenses      := ("Apache2", new java.net.URL("http://www.apache.org/licenses/LICENSE-2.0.txt")) :: Nil,
-  homepage      := Some(new java.net.URL("http://www.softwaremill.com"))
+  homepage      := Some(new java.net.URL("http://www.softwaremill.com")),
+  com.updateimpact.Plugin.apiKey in ThisBuild := sys.env.getOrElse("UPDATEIMPACT_API_KEY", (com.updateimpact.Plugin.apiKey in ThisBuild).value)
 )
 
 lazy val slickEventsourcing = (project in file("."))
