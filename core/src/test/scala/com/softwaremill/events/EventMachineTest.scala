@@ -104,7 +104,7 @@ class EventMachineTest extends FlatSpec with Matchers with SqlSpec with Eventual
     val result = m.eventMachine.run(CommandResult.successful((), Event(Event1("x")).forNewAggregate)).futureValue
 
     // when
-    val failOverFuture = m.eventMachine.failOverFromStoredEventsTo().futureValue
+    val failOverFuture = m.eventMachine.failOverFromStoredEvents().futureValue
 
     // then
     result should be(Right(()))
