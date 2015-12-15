@@ -1,6 +1,6 @@
 package com.softwaremill.events
 
-import java.time.{Clock, OffsetDateTime, ZoneOffset}
+import java.time.{Clock, OffsetDateTime}
 
 import com.softwaremill.id.IdGenerator
 import com.typesafe.scalalogging.StrictLogging
@@ -52,7 +52,7 @@ class EventMachine(
    * @param timeLimit Optional point in time till which events should be recovered.
    * @return
    */
-  def failOverFromStoredEventsTo(timeLimit: OffsetDateTime = clock.instant().atOffset(ZoneOffset.UTC)): Future[Unit] = {
+  def failOverFromStoredEvents(timeLimit: OffsetDateTime = OffsetDateTime.now()): Future[Unit] = {
     val storedEvents: DatabasePublisher[StoredEvent] = database.db.stream(eventStore.getAll(timeLimit))
 
     val eventActions = storedEvents.mapResult(e => e.toEvent(registry.getEventClass(e.eventType)))

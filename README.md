@@ -116,6 +116,10 @@ If an event causes a user to be logged in (e.g. a user registered or user logged
 libraryDependencies += "com.softwaremill.events" %% "core" % "0.1.2"
 ````
 
+# How to recover model state 
+
+In case you lost your database model but got event log, you can rebuild from the very beginning up to some point in time. There is a manual tool called `RecoverDbState` which calls eventMachine's `failOverFromStoredEvents` with default parameter of type `OffsetDateTime` - this indicated `until`. 
+
 # Version history
 
 * 25/11/2015, 0.1: initial release

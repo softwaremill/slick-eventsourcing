@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext
 
 trait EventStore {
   def store(event: StoredEvent): dbio.DBIOAction[Unit, NoStream, Write]
-  def getAll(timeLimit: OffsetDateTime): FixedSqlStreamingAction[Seq[StoredEvent], StoredEvent, Read]
+  def getAll(until: OffsetDateTime): FixedSqlStreamingAction[Seq[StoredEvent], StoredEvent, Read]
   def getLength(eventTypes: Set[String]): dbio.DBIOAction[Int, NoStream, Nothing]
 }
 
@@ -24,7 +24,7 @@ class DefaultEventStore(protected val database: EventsDatabase)(implicit ec: Exe
 
   def store(event: StoredEvent): DBIOAction[Unit, NoStream, Write] = (events += event).map(_ => ())
 
-  def getAll(timeLimit: OffsetDateTime): FixedSqlStreamingAction[Seq[StoredEvent], StoredEvent, Read] = events.filter(_.created < timeLimit).result
+  def getAll(until: OffsetDateTime): FixedSqlStreamingAction[Seq[StoredEvent], StoredEvent, Read] = events.filter(_.created < until).sortBy(_.id.asc).result
 
   def getLength(eventTypes: Set[String]): DBIOAction[Int, NoStream, Nothing] = events.map(_.eventType).filter(_.inSetBind(eventTypes)).length.result
 }

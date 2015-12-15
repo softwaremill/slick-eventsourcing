@@ -1,5 +1,6 @@
 package com.softwaremill.example
 
+import java.time.OffsetDateTime
 import java.util.Locale
 
 import akka.actor.ActorSystem
@@ -25,6 +26,6 @@ object RecoverDbState extends App {
 
   SchemaUpdate.update(modules.config.dbH2Url)
 
-  val handledEvents = modules.eventMachine.failOverFromStoredEventsTo()
-  handledEvents.onComplete { case completed =>  _system.terminate() }(modules.ec)
+  val handledEvents = modules.eventMachine.failOverFromStoredEvents(OffsetDateTime.now())
+  handledEvents.onComplete { case completed => _system.terminate() }(modules.ec)
 }

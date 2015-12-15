@@ -3,12 +3,11 @@ package com.softwaremill.events
 import org.flywaydb.core.Flyway
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Millis, Span}
 
 trait SqlSpec extends BeforeAndAfterAll with BeforeAndAfterEach with ScalaFutures {
   this: Suite =>
-
-  implicit val patience = PatienceConfig(timeout = Span(2000, Millis))
+  import org.scalatest.time.{Millis, Seconds, Span}
+  implicit val patience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
 
   private val connectionString = "jdbc:h2:mem:slickeventsourcing_test" + this.getClass.getSimpleName + ";DB_CLOSE_DELAY=-1"
 
