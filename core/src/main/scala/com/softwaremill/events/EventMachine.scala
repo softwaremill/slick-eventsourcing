@@ -53,34 +53,36 @@ class EventMachine(
    * @return
    */
   def failOverFromStoredEvents(timeLimit: OffsetDateTime = OffsetDateTime.now()): Future[Unit] = {
+    type Action = DBIOAction[Unit, NoStream, Read with Write]
+
+    def lookupModelUpdates(eOpt: Option[Event[Any]]): List[Action] = eOpt match {
+      case Some(e) => registry.lookupModelUpdates(e).map(_(e))
+      case None => List()
+    }
+
+    def performActionInTx(action: Action) = {
+      import database.driver.api._
+      database.db.run(action.transactionally)
+    }
+
     val storedEvents: DatabasePublisher[StoredEvent] = database.db.stream(eventStore.getAll(timeLimit))
 
-    val eventActions = storedEvents.mapResult(e => e.toEvent(registry.getEventClass(e.eventType)))
-      .mapResult(lookupEventAction)
+    val eventActions = storedEvents
+      .mapResult(e => e.toEvent(registry.eventClassIfHasModelUpdate(e.eventType)))
+      .mapResult(lookupModelUpdates)
 
-    val countFuture = storedEventsCountFuture().map(storedEventsCount => logger.info(s"Number of events to recover: $storedEventsCount"))
+    val doCountEvents = () => database.db.run(eventStore.getLength(registry.eventTypesWithModelUpdates))
+      .map(storedEventsCount => logger.info(s"Number of events to recover: $storedEventsCount"))
 
-    val recoveredEventsFuture = () => eventActions.foreach(_.foreach(e => performActionInTx(e).andThen {
+    val doRecover = () => eventActions.foreach(_.foreach(e => performActionInTx(e).andThen {
       case dbResponse => logger.info(s"Recovery db result: $dbResponse")
     }))
 
     for {
-      storedEventsCount <- countFuture
-      recoveredEvents <- recoveredEventsFuture.apply()
-    } yield recoveredEvents
+      _ <- doCountEvents()
+      _ <- doRecover()
+    } yield ()
   }
-
-  private def performActionInTx(action: DBIOAction[Unit, NoStream, Read with Write]) = {
-    import database.driver.api._
-    database.db.run(action.transactionally)
-  }
-
-  private def lookupEventAction(eOpt: Option[Event[Any]]) = eOpt match {
-    case Some(e) => registry.lookupModelUpdates(e).map(_(e))
-    case None => List()
-  }
-
-  private def storedEventsCountFuture() = database.db.run(eventStore.getLength(registry.getEventTypes))
 
   private[events] def runAsync[T](e: Event[T], hc: HandleContext): Future[Unit] = {
     database.db.run(handleAsync(e, hc))

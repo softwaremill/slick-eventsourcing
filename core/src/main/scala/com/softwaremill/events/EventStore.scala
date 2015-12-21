@@ -25,7 +25,7 @@ class DefaultEventStore(protected val database: EventsDatabase)(implicit ec: Exe
 
   def getAll(until: OffsetDateTime) = events.filter(_.created < until).sortBy(_.id.asc).result
 
-  def getLength(eventTypes: Set[String]) = events.map(_.eventType).filter(_.inSetBind(eventTypes)).length.result
+  def getLength(eventTypes: Set[String]) = events.map(_.eventType).filter(_.inSet(eventTypes)).length.result
 }
 
 trait SqlEventStoreSchema {

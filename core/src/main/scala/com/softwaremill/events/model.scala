@@ -89,8 +89,10 @@ case class PartialEvent[U, T](eventType: String, aggregateType: String, aggregat
 object PartialEvent {
   private[events] def apply[U: ClassTag, T <: Product](aggregateId: Option[Long @@ U], aggregateIsNew: Boolean,
     data: T, formats: Formats): PartialEvent[U, T] =
-    PartialEvent[U, T](data.productPrefix, implicitly[ClassTag[U]].runtimeClass.getSimpleName, aggregateId, aggregateIsNew,
-      data)(formats)
+    PartialEvent[U, T](data.productPrefix, eventTypeFromClass(implicitly[ClassTag[U]].runtimeClass), aggregateId,
+      aggregateIsNew, data)(formats)
+
+  private[events] def eventTypeFromClass(cls: Class[_]) = cls.getSimpleName
 }
 
 case class PartialEventWithId[U, T](id: Long, eventType: String, aggregateType: String, aggregateId: Long @@ U, aggregateIsNew: Boolean,
