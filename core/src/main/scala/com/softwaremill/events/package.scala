@@ -33,7 +33,7 @@ package object events {
      */
     def newAggregateId[U, T, F](event: PartialEvent[U, T], idGenerator: IdGenerator): CommandResult[F, Long @@ U] = {
       val id = idGenerator.nextId().taggedWith[U]
-      successful(id, event.copy(aggregateId = Some(id))(event.formats))
+      successful(id, event.copy(aggregateId = Some(id)))
     }
   }
 

@@ -4,8 +4,8 @@ import java.time.{Clock, OffsetDateTime, ZoneOffset}
 
 import com.softwaremill.id.IdGenerator
 import com.softwaremill.tagging._
+import org.json4s.Formats
 import org.json4s.native.Serialization
-import org.json4s.{DefaultFormats, Formats}
 
 import scala.reflect.ClassTag
 
@@ -27,13 +27,14 @@ object AggregateForEvent {
 }
 
 case class Event[T](id: Long, eventType: String, aggregateType: String, rawAggregateId: Long, aggregateIsNew: Boolean,
-    created: OffsetDateTime, rawUserId: Long, txId: Long, data: T)(implicit formats: Formats) {
+    created: OffsetDateTime, rawUserId: Long, txId: Long, data: T) {
 
   def aggregateId[U](implicit afe: AggregateForEvent[T, U]): Long @@ U = rawAggregateId.taggedWith[U]
 
   def userId[User](implicit ut: UserType[User]): Long @@ User = rawUserId.taggedWith[User]
 
-  def toStoredEvent = {
+  def toStoredEvent(formats: Formats) = {
+    implicit val f = formats
     StoredEvent(id, eventType, aggregateType, rawAggregateId, aggregateIsNew, created, rawUserId, txId,
       Serialization.write(data.asInstanceOf[AnyRef]))
   }
@@ -42,26 +43,23 @@ case class Event[T](id: Long, eventType: String, aggregateType: String, rawAggre
 object Event {
   /**
     * Main entry point for creating new events. Creates a builder for a new event with the given event data.
-    *
-    * @param formats If the event contains field which require custom serializers, provide the json formats needed
-    *                to serialize it.
     */
-  def apply[U: ClassTag, T <: Product](data: T)(implicit afe: AggregateForEvent[T, U], formats: Formats = DefaultFormats): EventForAggregateBuilder[U, T] =
-    EventForAggregateBuilder(data, formats, afe)
+  def apply[U: ClassTag, T <: Product](data: T)(implicit afe: AggregateForEvent[T, U]): EventForAggregateBuilder[U, T] =
+    EventForAggregateBuilder(data, afe)
 }
 
-case class EventForAggregateBuilder[U: ClassTag, T <: Product](data: T, formats: Formats, afe: AggregateForEvent[T, U]) {
+case class EventForAggregateBuilder[U: ClassTag, T <: Product](data: T, afe: AggregateForEvent[T, U]) {
   /**
     * This event creates a new aggregate. An id will be generated when the events are processed.
     */
   def forNewAggregate: PartialEvent[U, T] =
-    PartialEvent(None, aggregateIsNew = true, data, formats)
+    PartialEvent(None, aggregateIsNew = true, data)
 
   /**
     * This event modifies an existing aggregate.
     */
   def forAggregate(aggregateId: Long @@ U): PartialEvent[U, T] =
-    PartialEvent(Some(aggregateId), aggregateIsNew = false, data, formats)
+    PartialEvent(Some(aggregateId), aggregateIsNew = false, data)
 
   /**
     * This events creates a new, or modifies an existing aggregate.
@@ -75,43 +73,40 @@ case class EventForAggregateBuilder[U: ClassTag, T <: Product](data: T, formats:
     * This event creates a new aggregate. The id (`aggregateId`) is specified upfront.
     */
   def forNewAggregateWithId(aggregateId: Long @@ U): PartialEvent[U, T] =
-    PartialEvent(Some(aggregateId), aggregateIsNew = true, data, formats)
+    PartialEvent(Some(aggregateId), aggregateIsNew = true, data)
 }
 
 case class PartialEvent[U, T](eventType: String, aggregateType: String, aggregateId: Option[Long @@ U], aggregateIsNew: Boolean,
-    data: T)(val formats: Formats) {
+    data: T) {
   private[events] def withIds(idGenerator: IdGenerator, clock: Clock) =
     PartialEventWithId(idGenerator.nextId(), eventType, aggregateType,
       aggregateId.getOrElse(idGenerator.nextId().taggedWith[U]),
-      aggregateIsNew, clock.instant().atOffset(ZoneOffset.UTC), data)(formats)
+      aggregateIsNew, clock.instant().atOffset(ZoneOffset.UTC), data)
 }
 
 object PartialEvent {
   private[events] def apply[U: ClassTag, T <: Product](aggregateId: Option[Long @@ U], aggregateIsNew: Boolean,
-    data: T, formats: Formats): PartialEvent[U, T] =
+    data: T): PartialEvent[U, T] =
     PartialEvent[U, T](data.productPrefix, eventTypeFromClass(implicitly[ClassTag[U]].runtimeClass), aggregateId,
-      aggregateIsNew, data)(formats)
+      aggregateIsNew, data)
 
   private[events] def eventTypeFromClass(cls: Class[_]) = cls.getSimpleName
 }
 
 case class PartialEventWithId[U, T](id: Long, eventType: String, aggregateType: String, aggregateId: Long @@ U, aggregateIsNew: Boolean,
-    created: OffsetDateTime, data: T)(val formats: Formats) {
+    created: OffsetDateTime, data: T) {
   private[events] def toEvent(rawUserId: Long, txId: Long) =
-    Event[T](id, eventType, aggregateType, aggregateId, aggregateIsNew, created, rawUserId, txId, data)(formats)
+    Event[T](id, eventType, aggregateType, aggregateId, aggregateIsNew, created, rawUserId, txId, data)
 }
 
 case class StoredEvent(id: Long, eventType: String, aggregateType: String, aggregateId: Long, aggregateIsNew: Boolean,
   created: OffsetDateTime, userId: Long, txId: Long, eventJson: String){
 
-  def toEvent(clazzOpt: Option[Class[_]]): Option[Event[Any]] = {
-    //TODO: capture formats with event, maybe in registry
-    clazzOpt.map {
-      case clazz =>
-        implicit val format: Formats = DefaultFormats
-        implicit val m: Manifest[Any] = Manifest.classType(clazz)
-        Event[Any](id, eventType, aggregateType, aggregateId, aggregateIsNew, created, userId, txId, Serialization.read(eventJson))(format)
-    }
+  def toEvent(cls: Class[_], formats: Formats): Event[Any] = {
+    implicit val f = formats
+    implicit val m = Manifest.classType(cls)
+    Event[Any](id, eventType, aggregateType, aggregateId, aggregateIsNew, created, userId, txId,
+      Serialization.read(eventJson))
   }
 }
 

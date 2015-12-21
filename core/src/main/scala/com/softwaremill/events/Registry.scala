@@ -1,5 +1,7 @@
 package com.softwaremill.events
 
+import org.json4s.{DefaultFormats, Formats}
+
 import scala.reflect.ClassTag
 
 /**
@@ -9,7 +11,9 @@ case class Registry(
     eventListeners: Map[Class[_], List[EventListener[_]]],
     asyncEventListeners: Map[Class[_], List[EventListener[_]]],
     modelUpdates: Map[Class[_], List[ModelUpdate[_]]],
-    eventsByTypeWithModelUpdate: Map[String, Class[_]]
+    eventsByTypeWithModelUpdate: Map[String, Class[_]],
+    defaultFormats: Formats,
+    eventFormatsByType: Map[String, Formats]
 ) {
 
   def registerEventListener[T: ClassTag](h: EventListener[T]): Registry = {
@@ -30,8 +34,17 @@ case class Registry(
     )
   }
 
-  def eventClassIfHasModelUpdate(eventType: String) = eventsByTypeWithModelUpdate.get(eventType)
-  def eventTypesWithModelUpdates = eventsByTypeWithModelUpdate.keySet
+  def registerFormats[T: ClassTag](formats: Formats): Registry = {
+    copy(
+      eventFormatsByType = eventFormatsByType +
+      (PartialEvent.eventTypeFromClass(implicitly[ClassTag[T]].runtimeClass) -> formats)
+    )
+  }
+
+  def withDefaultFormats(defaultFormats: Formats): Registry = copy(defaultFormats = defaultFormats)
+
+  private[events] def eventClassIfHasModelUpdate(eventType: String) = eventsByTypeWithModelUpdate.get(eventType)
+  private[events] def eventTypesWithModelUpdates = eventsByTypeWithModelUpdate.keySet
   private def addEventType(eventsByType: Map[String, Class[_]], cls: Class[_]) =
     eventsByType + (PartialEvent.eventTypeFromClass(cls) -> cls)
 
@@ -57,8 +70,10 @@ case class Registry(
     val parents = Option(cls.getSuperclass).toList ++ cls.getInterfaces.toList
     cls :: parents.flatMap(supertypes)
   }
+
+  private[events] def formatsForEvent(eventType: String) = eventFormatsByType.getOrElse(eventType, defaultFormats)
 }
 
 object Registry {
-  def apply(): Registry = Registry(Map(), Map(), Map(), Map())
+  def apply(): Registry = Registry(Map(), Map(), Map(), Map(), DefaultFormats, Map())
 }

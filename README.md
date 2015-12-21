@@ -60,6 +60,8 @@ You need to specify what kind of model update and event listeners you would like
 
 The difference between regular (synchronous) and asynchronous event listeners will be discussed later.
 
+You can also specify the default `org.json4s.Formats` to use to serialize/deserialize event data, and define event-specific formats using the `registerFormats[T](formats)` method (where `T` is the type of the event).
+
 ## Event machine
 
 Given a registry, it is possible to create an `EventMachine`. The event machine is responsible for running appropriate actions when events are created. The main method in the event machine is:
@@ -80,7 +82,7 @@ The exception here are asynchronous event listeners (registered with `registerAs
 
 An event consist of arbitrary event data and some meta-data. The event data is usually a case class, and is serialised to JSON when written to the database. Each event is associated with an aggregate (a "root entity") through an id. To define what's the aggregate for an event, an implicit `AggregateForEvent[T, U]` must be available (typically defined in the companion object for the event's data), where `T` is the type of the event data and `U` is type of the aggregate.
 
-To create an event you should use the `Event(eventData)` method, which takes an implicit `AggregateForEvent` and `Formats`, used to serialize the event data to JSON. Then, you need to specify what's the id of the aggregate, either by using `forAggregate`, or `forNewAggregate`, if the id is not yet available.
+To create an event you should use the `Event(eventData)` method, which takes an implicit `AggregateForEvent`. Then, you need to specify what's the id of the aggregate, either by using `forAggregate`, or `forNewAggregate`, if the id is not yet available.
 
 That way you will obtain a `PartialEvent` which can be returned from a command or an event listener.
 
@@ -128,3 +130,4 @@ In case you lost your database model but got event log, you can rebuild from the
 * 30/11/2015, 0.1.2: updating to akka-http 2.0-m2
 * 7/12/2015, 0.1.3: making `EventStore` a trait, changing param type in `EventsDatabase`
 * 15/12/2015, 0.1.4: initial recovery support
+* 21/12/2015, 0.1.5: registering custom event formats

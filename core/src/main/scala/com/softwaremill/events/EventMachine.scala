@@ -65,10 +65,14 @@ class EventMachine(
       database.db.run(action.transactionally)
     }
 
+    def toEventIfHasModelUpdate(e: StoredEvent): Option[Event[Any]] =
+      registry.eventClassIfHasModelUpdate(e.eventType)
+        .map(cls => e.toEvent(cls, registry.formatsForEvent(e.eventType)))
+
     val storedEvents: DatabasePublisher[StoredEvent] = database.db.stream(eventStore.getAll(timeLimit))
 
     val eventActions = storedEvents
-      .mapResult(e => e.toEvent(registry.eventClassIfHasModelUpdate(e.eventType)))
+      .mapResult(toEventIfHasModelUpdate)
       .mapResult(lookupModelUpdates)
 
     val doCountEvents = () => database.db.run(eventStore.getLength(registry.eventTypesWithModelUpdates))
@@ -136,7 +140,7 @@ class EventMachine(
   private def handleEvent[T](e: Event[T], ctx: HandleContext, txId: Long): DBHandledEvents = {
     logger.info("Handling event: " + e)
 
-    val doStore = eventStore.store(e.toStoredEvent).map(_ => List(e))
+    val doStore = eventStore.store(e.toStoredEvent(registry.formatsForEvent(e.eventType))).map(_ => List(e))
 
     val executeModelUpdate = DBIO.seq(registry.lookupModelUpdates(e).map(_ (e)): _*).map(_ => Nil)
 
