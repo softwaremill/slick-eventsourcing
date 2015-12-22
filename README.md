@@ -116,7 +116,7 @@ If an event causes a user to be logged in (e.g. a user registered or user logged
 # Using from SBT
 
 ````scala
-libraryDependencies += "com.softwaremill.events" %% "core" % "0.1.2"
+libraryDependencies += "com.softwaremill.events" %% "core" % "0.1.5"
 ````
 
 # How to recover model state 
