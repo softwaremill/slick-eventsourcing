@@ -4,9 +4,9 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.{Route, AuthorizationFailedRejection}
 import akka.http.scaladsl.server.Directives._
 import com.softwaremill.events.HandleContext
-import com.softwaremill.example.user.UserCommands.ValidationFailed
 import com.softwaremill.example.user.{UserJson, UserCommands}
 import com.softwaremill.session.SessionDirectives._
+import com.softwaremill.session.SessionOptions._
 import com.typesafe.scalalogging.StrictLogging
 import UserCommands._
 

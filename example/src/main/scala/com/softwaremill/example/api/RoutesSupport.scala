@@ -12,6 +12,7 @@ import akka.stream.Materializer
 import com.softwaremill.events.{EventsDatabase, CommandResult, EventMachine, HandleContext}
 import com.softwaremill.example.user.{User, UserModel}
 import com.softwaremill.session.SessionDirectives._
+import com.softwaremill.session.SessionOptions._
 import com.softwaremill.session.SessionManager
 import com.softwaremill.tagging._
 import org.json4s.JsonAST.JString
@@ -53,7 +54,7 @@ trait JsonSupport {
 
   implicit def json4sMarshaller[A <: AnyRef](implicit cbs: CanBeSerialized[A]): ToEntityMarshaller[A] = {
     import native.JsonMethods._
-    Marshaller.StringMarshaller.wrap(ContentTypes.`application/json`) {
+    Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`) {
       (Extraction.decompose _)
         .andThen(transformLongIdsToStrIds)
         .andThen(render)
