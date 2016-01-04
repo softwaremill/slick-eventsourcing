@@ -12,7 +12,7 @@ val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0"
 val json4s = "org.json4s" %% "json4s-native" % "3.3.0"
 val slick = "com.typesafe.slick" %% "slick" % slickVersion
 val tagging = "com.softwaremill.common" %% "tagging" % "1.0.0"
-val idGenerator = "com.softwaremill.common" %% "id-generator" % "1.0.0"
+val idGenerator = "com.softwaremill.common" %% "id-generator" % "1.1.0"
 
 // testing/example
 val scalatest = "org.scalatest" %% "scalatest" % "2.2.5" % "test"
