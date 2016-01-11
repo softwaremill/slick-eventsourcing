@@ -16,7 +16,7 @@ val idGenerator = "com.softwaremill.common" %% "id-generator" % "1.1.0"
 
 // testing/example
 val scalatest = "org.scalatest" %% "scalatest" % "2.2.5" % "test"
-val h2 = "com.h2database" % "h2" % "1.4.190"
+val h2 = "com.h2database" % "h2" % "1.3.176"// 1.4.190 is beta
 val flyway = "org.flywaydb" % "flyway-core" % "3.2.1"
 val slickHikari = "com.typesafe.slick" %% "slick-hikaricp" % slickVersion
 val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.1.3"
