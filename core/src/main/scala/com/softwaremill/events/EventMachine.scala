@@ -67,7 +67,7 @@ class EventMachine(
 
     def toEventIfHasModelUpdate(e: StoredEvent): Option[Event[Any]] = {
       registry.eventClassIfHasModelUpdate(e.eventType)
-      .flatMap(cls => e.toEvent(cls, registry.formatsForEvent(e.eventType)).toOption)
+        .flatMap(cls => e.toEvent(cls, registry.formatsForEvent(e.eventType)).toOption)
     }
 
     val storedEvents: DatabasePublisher[StoredEvent] = database.db.stream(eventStore.getAll(timeLimit))
