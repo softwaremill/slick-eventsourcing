@@ -65,9 +65,10 @@ class EventMachine(
       database.db.run(action.transactionally)
     }
 
-    def toEventIfHasModelUpdate(e: StoredEvent): Option[Event[Any]] =
+    def toEventIfHasModelUpdate(e: StoredEvent): Option[Event[Any]] = {
       registry.eventClassIfHasModelUpdate(e.eventType)
-        .map(cls => e.toEvent(cls, registry.formatsForEvent(e.eventType)))
+      .flatMap(cls => e.toEvent(cls, registry.formatsForEvent(e.eventType)).toOption)
+    }
 
     val storedEvents: DatabasePublisher[StoredEvent] = database.db.stream(eventStore.getAll(timeLimit))
 

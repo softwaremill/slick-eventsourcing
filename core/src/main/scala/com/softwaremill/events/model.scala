@@ -8,6 +8,7 @@ import org.json4s.Formats
 import org.json4s.native.Serialization
 
 import scala.reflect.ClassTag
+import scala.util.Try
 
 /**
   * For each event, provide an implicit value of type `AggregateForEvent` which specifies with which aggregate is
@@ -102,11 +103,11 @@ case class PartialEventWithId[U, T](id: Long, eventType: String, aggregateType: 
 case class StoredEvent(id: Long, eventType: String, aggregateType: String, aggregateId: Long, aggregateIsNew: Boolean,
   created: OffsetDateTime, userId: Long, txId: Long, eventJson: String){
 
-  def toEvent(cls: Class[_], formats: Formats): Event[Any] = {
+  def toEvent(cls: Class[_], formats: Formats): Try[Event[Any]] = {
     implicit val f = formats
     implicit val m = Manifest.classType(cls)
-    Event[Any](id, eventType, aggregateType, aggregateId, aggregateIsNew, created, userId, txId,
-      Serialization.read(eventJson))
+    Try(Event[Any](id, eventType, aggregateType, aggregateId, aggregateIsNew, created, userId, txId,
+      Serialization.read(eventJson)))
   }
 }
 
