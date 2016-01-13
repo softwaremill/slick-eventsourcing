@@ -9,6 +9,7 @@ import slick.dbio.Effect.{Read, Transactional, Write}
 import slick.dbio.{DBIO, DBIOAction, NoStream}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class EventMachine(
     database: EventsDatabase,
@@ -67,7 +68,10 @@ class EventMachine(
 
     def toEventIfHasModelUpdate(e: StoredEvent): Option[Event[Any]] = {
       registry.eventClassIfHasModelUpdate(e.eventType)
-        .flatMap(cls => e.toEvent(cls, registry.formatsForEvent(e.eventType)).toOption)
+        .flatMap(cls => e.toEvent(cls, registry.formatsForEvent(e.eventType)) match {
+          case Success(event) => Some(event)
+          case Failure(ex) => logger.warn("Couldn't deserialize JSON", ex); None
+        })
     }
 
     val storedEvents: DatabasePublisher[StoredEvent] = database.db.stream(eventStore.getAll(timeLimit))

@@ -13,9 +13,6 @@
     <logger name="com.softwaremill" level="DEBUG" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
-    <logger name="slick.backend" level="DEBUG" additivity="false">
-        <appender-ref ref="STDOUT" />
-    </logger>
 
     <!-- Strictly speaking, the level attribute is not necessary since -->
     <!-- the level of the root level is set to DEBUG by default.       -->

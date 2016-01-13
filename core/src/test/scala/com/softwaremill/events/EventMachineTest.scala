@@ -1,5 +1,6 @@
 package com.softwaremill.events
 
+import java.time.OffsetDateTime
 import java.util.concurrent.ConcurrentHashMap
 
 import com.softwaremill.id.DefaultIdGenerator
@@ -109,6 +110,31 @@ class EventMachineTest extends FlatSpec with Matchers with SqlSpec with Eventual
     // then
     result should be(Right(()))
     actions should be (Vector("mu1x", "el1", "mu1x"))
+  }
+
+  it should "recover only one properly deserialized event and omit inappropriate" in {
+    // given
+    var actions = Vector.empty[String]
+
+    val m = createModules(Registry()
+      .registerModelUpdate[Event1] { e => DBIOAction.successful(()).map { r => actions :+= "mu1" + e.data.data; r } }
+      .registerEventListener[Event1] { e => DBIOAction.successful(Nil).map { r => actions :+= "el1"; r } })
+
+    val now = OffsetDateTime.now()
+    val eventType = "Event1"
+    val aggregateType = "Aggregate1"
+    val inappropriateEvent = StoredEvent(1L, eventType, aggregateType, 2L, aggregateIsNew = true, now, 3L, 4L, "{\"login\":\"jan\"}")
+    val properEvent = StoredEvent(5L, eventType, aggregateType, 6L, aggregateIsNew = true, now, 7L, 8L, "{\"data\":\"properData\"}")
+
+    m.eventsDatabase.db.run(m.eventStore.store(inappropriateEvent))
+    m.eventsDatabase.db.run(m.eventStore.store(properEvent))
+    implicit val hc = HandleContext.System
+
+    // when
+    val failOverFuture = m.eventMachine.failOverFromStoredEvents().futureValue
+
+    // then
+    actions should be (Vector("mu1properData"))
   }
 }
 
