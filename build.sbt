@@ -4,10 +4,9 @@ import Keys._
 import scalariform.formatter.preferences._
 
 val slickVersion = "3.1.1"
-val akkaHttpVersion = "2.0.1"
-val akkaVersion = "2.4.1"
+val akkaVersion = "2.4.3"
 
-val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.13"
+val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.21"
 val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0"
 val json4s = "org.json4s" %% "json4s-native" % "3.3.0"
 val slick = "com.typesafe.slick" %% "slick" % slickVersion
@@ -15,16 +14,16 @@ val tagging = "com.softwaremill.common" %% "tagging" % "1.0.0"
 val idGenerator = "com.softwaremill.common" %% "id-generator" % "1.1.0"
 
 // testing/example
-val scalatest = "org.scalatest" %% "scalatest" % "2.2.5" % "test"
+val scalatest = "org.scalatest" %% "scalatest" % "2.2.6" % "test"
 val h2 = "com.h2database" % "h2" % "1.3.176"// 1.4.190 is beta
-val flyway = "org.flywaydb" % "flyway-core" % "3.2.1"
+val flyway = "org.flywaydb" % "flyway-core" % "4.0"
 val slickHikari = "com.typesafe.slick" %% "slick-hikaricp" % slickVersion
-val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.1.3"
+val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.1.7"
 
 // example only
 val typesafeConfig = "com.typesafe" % "config" % "1.3.0"
-val akkaHttp = "com.typesafe.akka" %% "akka-http-experimental" % akkaHttpVersion
-val akkaHttpSession = "com.softwaremill.akka-http-session" %% "core" % "0.2.3"
+val akkaHttp = "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion
+val akkaHttpSession = "com.softwaremill.akka-http-session" %% "core" % "0.2.5"
 val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
 val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
 
@@ -33,8 +32,8 @@ name := "slick-eventsourcing"
 // factor out common settings into a sequence
 lazy val commonSettings = scalariformSettings ++ Seq(
   organization := "com.softwaremill.events",
-  version := "0.1.6",
-  scalaVersion := "2.11.7",
+  version := "0.1.7-SNAPSHOT",
+  scalaVersion := "2.11.8",
 
   scalacOptions ++= Seq("-unchecked", "-deprecation"),
 
