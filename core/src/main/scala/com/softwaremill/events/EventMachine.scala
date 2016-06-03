@@ -6,7 +6,7 @@ import com.softwaremill.id.IdGenerator
 import com.typesafe.scalalogging.StrictLogging
 import slick.backend.DatabasePublisher
 import slick.dbio.Effect.{Read, Transactional, Write}
-import slick.dbio.{DBIO, DBIOAction, NoStream}
+import slick.dbio.{DBIO, DBIOAction, NoStream, Streaming}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -54,17 +54,36 @@ class EventMachine(
    * @return
    */
   def failOverFromStoredEvents(timeLimit: OffsetDateTime = OffsetDateTime.now()): Future[Unit] = {
+    recover(eventStore.getAll(timeLimit))
+  }
+
+  /**
+   * Recovers db state from event log.
+   *
+   * @param eventId Event id that should be recovered.
+   * @return
+   */
+  def replySingleStoredEvent(eventId: Long): Future[Unit] = {
+    recover(eventStore.findById(eventId))
+  }
+
+  /**
+   * Recovers db state from event log.
+   *
+   * @param from Point in time from which events should be recovered.
+   * @param to Point in time till which events should be recovered.
+   * @return
+   */
+  def failOverStoredEventsRange(from: OffsetDateTime, to: OffsetDateTime): Future[Unit] = {
+    val fromEventId = idGenerator.idBaseAt(from.toInstant.toEpochMilli)
+    val toEventId = idGenerator.idBaseAt(to.toInstant.toEpochMilli)
+
+    recover(eventStore.findByIdRange(fromEventId, toEventId))
+  }
+
+  private def recover(events: DBIOAction[Seq[StoredEvent], Streaming[StoredEvent], Read]): Future[Unit] = {
     type Action = DBIOAction[Unit, NoStream, Read with Write]
-
-    def lookupModelUpdates(eOpt: Option[Event[Any]]): List[Action] = eOpt match {
-      case Some(e) => registry.lookupModelUpdates(e).map(_(e))
-      case None => List()
-    }
-
-    def performActionInTx(action: Action) = {
-      import database.driver.api._
-      database.db.run(action.transactionally)
-    }
+    val storedEvents: DatabasePublisher[StoredEvent] = database.db.stream(events)
 
     def toEventIfHasModelUpdate(e: StoredEvent): Option[Event[Any]] = {
       registry.eventClassIfHasModelUpdate(e.eventType)
@@ -74,7 +93,10 @@ class EventMachine(
         })
     }
 
-    val storedEvents: DatabasePublisher[StoredEvent] = database.db.stream(eventStore.getAll(timeLimit))
+    def lookupModelUpdates(eOpt: Option[Event[Any]]): List[Action] = eOpt match {
+      case Some(e) => registry.lookupModelUpdates(e).map(_(e))
+      case None => List()
+    }
 
     val eventActions = storedEvents
       .mapResult(toEventIfHasModelUpdate)
@@ -82,6 +104,11 @@ class EventMachine(
 
     val doCountEvents = () => database.db.run(eventStore.getLength(registry.eventTypesWithModelUpdates))
       .map(storedEventsCount => logger.info(s"Number of events to recover: $storedEventsCount"))
+
+    def performActionInTx(action: Action) = {
+      import database.driver.api._
+      database.db.run(action.transactionally)
+    }
 
     val doRecover = () => eventActions.foreach(_.foreach(e => performActionInTx(e).andThen {
       case dbResponse => logger.info(s"Recovery db result: $dbResponse")
