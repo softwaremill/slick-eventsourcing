@@ -53,7 +53,7 @@ class EventMachine(
    * @param timeLimit Optional point in time till which events should be recovered.
    * @return
    */
-  def failOverFromStoredEvents(timeLimit: OffsetDateTime = OffsetDateTime.now()): Future[Unit] = {
+  def recoverStoredEvents(timeLimit: OffsetDateTime = OffsetDateTime.now()): Future[Unit] = {
     recover(eventStore.getAll(timeLimit))
   }
 
@@ -63,7 +63,7 @@ class EventMachine(
    * @param eventId Event id that should be recovered.
    * @return
    */
-  def replySingleStoredEvent(eventId: Long): Future[Unit] = {
+  def recoverSingleStoredEvent(eventId: Long): Future[Unit] = {
     recover(eventStore.findById(eventId))
   }
 
@@ -74,7 +74,7 @@ class EventMachine(
    * @param to Point in time till which events should be recovered.
    * @return
    */
-  def failOverStoredEventsRange(from: OffsetDateTime, to: OffsetDateTime): Future[Unit] = {
+  def recoverStoredEventsRange(from: OffsetDateTime, to: OffsetDateTime): Future[Unit] = {
     val fromEventId = idGenerator.idBaseAt(from.toInstant.toEpochMilli)
     val toEventId = idGenerator.idBaseAt(to.toInstant.toEpochMilli)
 

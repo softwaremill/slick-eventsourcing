@@ -25,6 +25,6 @@ object RecoverDbState extends App {
 
   SchemaUpdate.update(modules.config.dbH2Url)
 
-  val handledEvents = modules.eventMachine.failOverFromStoredEvents()
+  val handledEvents = modules.eventMachine.recoverStoredEvents()
   handledEvents.onComplete { case completed => _system.terminate() }(modules.ec)
 }
