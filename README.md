@@ -121,7 +121,11 @@ libraryDependencies += "com.softwaremill.events" %% "core" % "0.1.5"
 
 # How to recover model state 
 
-In case you lost your database model but got event log, you can rebuild from the very beginning up to some point in time. There is a manual tool called `RecoverDbState` which calls eventMachine's `failOverFromStoredEvents` with default parameter of type `OffsetDateTime` - this indicated `until`. 
+In case you lost your database model but got event log, you can rebuild state from it.
+In example project, there is a manual tool called `RecoverDbState` which shows how to call eventMachine's recover methods:
+  * `recoverStoredEvents` - reply all events stored in event log until given (`timeLimit`) point in time.
+  * `recoverSingleStoredEvent` - only one event by id
+  * `recoverStoredEventsRange` - recovers all events from given range.
 
 # Version history
 

@@ -13,6 +13,8 @@ trait EventStore {
   def store(event: StoredEvent): dbio.DBIOAction[Unit, NoStream, Write]
   def getAll(until: OffsetDateTime): dbio.DBIOAction[Seq[StoredEvent], Streaming[StoredEvent], Read]
   def getLength(eventTypes: Set[String]): dbio.DBIOAction[Int, NoStream, Nothing]
+  def findById(eventId: Long): dbio.DBIOAction[Seq[StoredEvent], Streaming[StoredEvent], Read]
+  def findByIdRange(fromEventId: Long, toEventId: Long): dbio.DBIOAction[Seq[StoredEvent], Streaming[StoredEvent], Read]
 }
 
 class DefaultEventStore(protected val database: EventsDatabase)(implicit ec: ExecutionContext)
@@ -26,6 +28,10 @@ class DefaultEventStore(protected val database: EventsDatabase)(implicit ec: Exe
   def getAll(until: OffsetDateTime) = events.filter(_.created < until).sortBy(_.id.asc).result
 
   def getLength(eventTypes: Set[String]) = events.map(_.eventType).filter(_.inSet(eventTypes)).length.result
+
+  def findById(eventId: Long) = events.filter(_.id === eventId).result
+
+  def findByIdRange(fromEventId: Long, toEventId: Long) = events.filter(a => a.id between (fromEventId, toEventId)).result
 }
 
 trait SqlEventStoreSchema {
