@@ -4,26 +4,26 @@ import Keys._
 import scalariform.formatter.preferences._
 
 val slickVersion = "3.1.1"
-val akkaVersion = "2.4.3"
+val akkaVersion = "2.4.8"
 
 val slf4jApi = "org.slf4j" % "slf4j-api" % "1.7.21"
-val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0"
-val json4s = "org.json4s" %% "json4s-native" % "3.3.0"
+val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.4.0"
+val json4s = "org.json4s" %% "json4s-native" % "3.4.0"
 val slick = "com.typesafe.slick" %% "slick" % slickVersion
 val tagging = "com.softwaremill.common" %% "tagging" % "1.0.0"
 val idGenerator = "com.softwaremill.common" %% "id-generator" % "1.1.0"
 
 // testing/example
-val scalatest = "org.scalatest" %% "scalatest" % "2.2.6" % "test"
+val scalatest = "org.scalatest" %% "scalatest" % "3.0.0" % "test"
 val h2 = "com.h2database" % "h2" % "1.3.176"// 1.4.190 is beta
-val flyway = "org.flywaydb" % "flyway-core" % "4.0"
+val flyway = "org.flywaydb" % "flyway-core" % "4.0.3"
 val slickHikari = "com.typesafe.slick" %% "slick-hikaricp" % slickVersion
 val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.1.7"
 
 // example only
 val typesafeConfig = "com.typesafe" % "config" % "1.3.0"
 val akkaHttp = "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion
-val akkaHttpSession = "com.softwaremill.akka-http-session" %% "core" % "0.2.5"
+val akkaHttpSession = "com.softwaremill.akka-http-session" %% "core" % "0.2.6"
 val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
 val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
 
